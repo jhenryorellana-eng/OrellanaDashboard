@@ -173,8 +173,8 @@ export interface VoiceNote {
   id: string;
   /** Transcripción de la voz a texto */
   text: string;
-  /** Audio original grabado (se guarda en IndexedDB) */
-  audio?: Blob | null;
+  /** Ruta del audio en Supabase Storage (bucket voice-notes) */
+  audioPath?: string;
   durationSec: number;
   pinned: boolean;
   /** Fecha opcional asociada yyyy-MM-dd */

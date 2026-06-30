@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Pin,
@@ -24,6 +24,7 @@ import {
   formatHour,
 } from "@/lib/utils";
 import { parseSpanishDateTime } from "@/lib/parseDateTime";
+import { getAudioUrl } from "@/lib/db";
 import VoiceRecorder from "../VoiceRecorder";
 import AudioPlayer from "../AudioPlayer";
 
@@ -86,8 +87,19 @@ function NoteCard({ note }: { note: VoiceNote }) {
   const openEditorDraft = useStore((s) => s.openEditorDraft);
   const linkNoteToDate = useStore((s) => s.linkNoteToDate);
   const [copied, setCopied] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   const detected = useMemo(() => parseSpanishDateTime(note.text), [note.text]);
+
+  useEffect(() => {
+    let active = true;
+    if (note.audioPath) {
+      getAudioUrl(note.audioPath).then((u) => active && setAudioUrl(u));
+    }
+    return () => {
+      active = false;
+    };
+  }, [note.audioPath]);
 
   function createEvent() {
     openEditorDraft({
@@ -117,11 +129,13 @@ function NoteCard({ note }: { note: VoiceNote }) {
       canShare?: (d?: ShareData) => boolean;
     };
     try {
-      const file = note.audio
-        ? new File([note.audio], "nota-de-voz.webm", {
-            type: note.audio.type || "audio/webm",
-          })
-        : null;
+      let file: File | null = null;
+      if (audioUrl) {
+        const blob = await (await fetch(audioUrl)).blob();
+        file = new File([blob], "nota-de-voz.webm", {
+          type: blob.type || "audio/webm",
+        });
+      }
       if (file && navAny.canShare?.({ files: [file] }) && navigator.share) {
         await navigator.share({ title: "Nota de voz", text, files: [file] });
       } else if (navigator.share) {
@@ -182,8 +196,8 @@ function NoteCard({ note }: { note: VoiceNote }) {
         <p className="mt-2 text-sm italic text-slate-500">Nota de audio sin texto</p>
       )}
 
-      {note.audio && (
-        <AudioPlayer blob={note.audio} durationSec={note.durationSec} />
+      {audioUrl && (
+        <AudioPlayer src={audioUrl} durationSec={note.durationSec} />
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">

@@ -122,12 +122,10 @@ export default function VoiceRecorder() {
 
   async function save() {
     setSaving(true);
-    await addNote({
-      text: finalText.trim(),
-      audio: blobRef.current,
-      durationSec: seconds,
-      pinned: false,
-    });
+    await addNote(
+      { text: finalText.trim(), durationSec: seconds, pinned: false },
+      blobRef.current,
+    );
     setSaving(false);
     discard();
   }

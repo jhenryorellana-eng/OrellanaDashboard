@@ -77,13 +77,17 @@ interface CommandState {
 
   // lifecycle
   hydrate: () => Promise<void>;
+  resetData: () => void;
 
   // events
   saveEvent: (input: Omit<EventItem, "id" | "createdAt"> & { id?: string }) => Promise<void>;
   removeEvent: (id: string) => Promise<void>;
 
   // notes
-  addNote: (note: Omit<VoiceNote, "id" | "createdAt">) => Promise<void>;
+  addNote: (
+    note: Omit<VoiceNote, "id" | "createdAt" | "audioPath">,
+    audioBlob?: Blob | null,
+  ) => Promise<void>;
   removeNote: (id: string) => Promise<void>;
   togglePinNote: (id: string) => Promise<void>;
   linkNoteToDate: (id: string, date: string) => Promise<void>;
@@ -179,6 +183,29 @@ export const useStore = create<CommandState>((set, get) => ({
     scheduleBillReminders(bills);
   },
 
+  resetData: () =>
+    set({
+      hydrated: false,
+      events: [],
+      notes: [],
+      staff: [],
+      bills: [],
+      techItems: [],
+      staffUnlocked: false,
+      staffPinSet: false,
+      geminiKey: "",
+      radarRegion: REGION_DEFAULT,
+      techError: null,
+      activeTab: "today",
+      editorOpen: false,
+      editingEvent: null,
+      draftEvent: null,
+      staffEditorOpen: false,
+      editingStaff: null,
+      billEditorOpen: false,
+      editingBill: null,
+    }),
+
   saveEvent: async (input) => {
     const existing = input.id
       ? get().events.find((e) => e.id === input.id)
@@ -203,15 +230,20 @@ export const useStore = create<CommandState>((set, get) => ({
     reschedule(events);
   },
 
-  addNote: async (note) => {
-    const full: VoiceNote = { ...note, id: uid(), createdAt: Date.now() };
+  addNote: async (note, audioBlob) => {
+    const id = uid();
+    let audioPath: string | undefined;
+    if (audioBlob) audioPath = await db.uploadAudio(id, audioBlob);
+    const full: VoiceNote = { ...note, id, audioPath, createdAt: Date.now() };
     await db.putNote(full);
     set({ notes: [full, ...get().notes] });
   },
 
   removeNote: async (id) => {
+    const note = get().notes.find((nn) => nn.id === id);
+    if (note?.audioPath) await db.deleteAudio(note.audioPath);
     await db.deleteNote(id);
-    set({ notes: get().notes.filter((n) => n.id !== id) });
+    set({ notes: get().notes.filter((nn) => nn.id !== id) });
   },
 
   togglePinNote: async (id) => {

@@ -12,7 +12,10 @@ import {
   ChevronLeft,
   Sparkles,
   ExternalLink,
+  LogOut,
+  User,
 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import {
   notificationPermission,
   requestNotificationPermission,
@@ -36,6 +39,11 @@ export default function SettingsView() {
   const [keyInput, setKeyInput] = useState("");
   const [regionInput, setRegionInput] = useState("");
   const [savedRadar, setSavedRadar] = useState(false);
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
+  }, []);
 
   useEffect(() => {
     setKeyInput(geminiKey);
@@ -187,17 +195,37 @@ export default function SettingsView() {
             </a>
           </div>
           <p className="text-xs text-slate-500">
-            La clave se guarda solo en este dispositivo y se usa para buscar
-            eventos y noticias con IA (Gemini).
+            Se guarda en tu cuenta y se usa para buscar eventos y noticias con
+            IA (Gemini).
           </p>
         </div>
+      </Group>
+
+      <Group title="Cuenta">
+        <Row
+          icon={<User size={18} className="text-azure" />}
+          title={email || "Sesión iniciada"}
+          subtitle="Conectado a tu base de datos en la nube"
+        />
+        <Row
+          icon={<LogOut size={18} className="text-coral" />}
+          title="Cerrar sesión"
+          subtitle="Salir de esta cuenta en este dispositivo"
+        >
+          <button
+            onClick={() => supabase.auth.signOut()}
+            className="rounded-full border border-coral/30 bg-coral/10 px-3 py-1.5 text-sm font-semibold text-coral transition active:scale-95"
+          >
+            Salir
+          </button>
+        </Row>
       </Group>
 
       <Group title="Datos">
         <Row
           icon={<ShieldCheck size={18} className="text-mint" />}
           title="Privacidad"
-          subtitle="Todo se guarda solo en este dispositivo"
+          subtitle="Tus datos están protegidos por tu cuenta (RLS)"
         />
         <Row
           icon={<Download size={18} className="text-slate-300" />}

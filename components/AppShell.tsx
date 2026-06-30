@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { initInstallCapture } from "@/lib/pwa";
+import { supabase } from "@/lib/supabase";
+import AuthScreen from "./AuthScreen";
 import TodayView from "./views/TodayView";
 import CalendarView from "./views/CalendarView";
 import NotesView from "./views/NotesView";
@@ -30,17 +32,41 @@ const VIEWS = {
 export default function AppShell() {
   const hydrated = useStore((s) => s.hydrated);
   const hydrate = useStore((s) => s.hydrate);
+  const resetData = useStore((s) => s.resetData);
   const activeTab = useStore((s) => s.activeTab);
+  const [authReady, setAuthReady] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
-    hydrate();
     initInstallCapture();
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch(() => {
         /* el SW es opcional: la app funciona igual sin él */
       });
     }
-  }, [hydrate]);
+
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      setSignedIn(!!data.session);
+      setAuthReady(true);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSignedIn(!!session);
+      if (!session) resetData();
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [resetData]);
+
+  useEffect(() => {
+    if (signedIn && !hydrated) hydrate();
+  }, [signedIn, hydrated, hydrate]);
+
+  if (!authReady) return <BootSplash />;
+  if (!signedIn) return <AuthScreen />;
 
   const ActiveView = VIEWS[activeTab];
 

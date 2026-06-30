@@ -13,39 +13,32 @@ function mmss(s: number) {
 
 /** Reproductor con waveform decodificado, scrubber y control de velocidad. */
 export default function AudioPlayer({
-  blob,
+  src,
   durationSec,
   accent = "#f5b642",
 }: {
-  blob: Blob;
+  src: string;
   durationSec: number;
   accent?: string;
 }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [url, setUrl] = useState<string | null>(null);
   const [peaks, setPeaks] = useState<number[]>(Array(BARS).fill(0.25));
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
   const [speedIdx, setSpeedIdx] = useState(0);
 
-  // URL para el <audio>
-  useEffect(() => {
-    const u = URL.createObjectURL(blob);
-    setUrl(u);
-    return () => URL.revokeObjectURL(u);
-  }, [blob]);
-
-  // Decodifica el audio una vez para extraer los picos de la onda
+  // Descarga y decodifica el audio una vez para extraer los picos de la onda
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
+        const buffer = await (await fetch(src)).arrayBuffer();
         const Ctx =
           window.AudioContext ||
           (window as unknown as { webkitAudioContext: typeof AudioContext })
             .webkitAudioContext;
         const ctx = new Ctx();
-        const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+        const buf = await ctx.decodeAudioData(buffer);
         const data = buf.getChannelData(0);
         const block = Math.floor(data.length / BARS) || 1;
         const next: number[] = [];
@@ -68,7 +61,7 @@ export default function AudioPlayer({
     return () => {
       cancelled = true;
     };
-  }, [blob]);
+  }, [src]);
 
   const total = durationSec || 0;
   const progress = total > 0 ? Math.min(1, current / total) : 0;
@@ -140,21 +133,19 @@ export default function AudioPlayer({
         {SPEEDS[speedIdx]}×
       </button>
 
-      {url && (
-        <audio
-          ref={audioRef}
-          src={url}
-          preload="metadata"
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
-          onTimeUpdate={(e) => setCurrent(e.currentTarget.currentTime)}
-          onEnded={() => {
-            setPlaying(false);
-            setCurrent(0);
-          }}
-          className="hidden"
-        />
-      )}
+      <audio
+        ref={audioRef}
+        src={src}
+        preload="metadata"
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onTimeUpdate={(e) => setCurrent(e.currentTarget.currentTime)}
+        onEnded={() => {
+          setPlaying(false);
+          setCurrent(0);
+        }}
+        className="hidden"
+      />
     </div>
   );
 }
