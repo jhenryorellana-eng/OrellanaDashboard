@@ -83,7 +83,7 @@ export default function RadarView() {
           <input
             value={regionInput}
             onChange={(e) => setRegionInput(e.target.value)}
-            placeholder="Utah, EE.UU."
+            placeholder="Estados Unidos (o una ciudad)"
             className="input-base"
           />
         </label>

@@ -44,7 +44,7 @@ export default function SettingsView() {
 
   function saveRadar() {
     setGeminiKey(keyInput.trim());
-    setRadarRegion(regionInput.trim() || "Utah, EE.UU.");
+    setRadarRegion(regionInput.trim() || "Estados Unidos");
     setSavedRadar(true);
     setTimeout(() => setSavedRadar(false), 1500);
   }
@@ -166,7 +166,7 @@ export default function SettingsView() {
             <input
               value={regionInput}
               onChange={(e) => setRegionInput(e.target.value)}
-              placeholder="Utah, EE.UU."
+              placeholder="Estados Unidos"
               className="input-base"
             />
           </label>

@@ -1,6 +1,6 @@
 import type { TechItem, RsvpStatus } from "./types";
 
-export const REGION_DEFAULT = "Utah, EE.UU.";
+export const REGION_DEFAULT = "Estados Unidos";
 export const TOPICS_DEFAULT = "tecnología, inteligencia artificial, startups";
 
 export const RSVP_META: Record<
