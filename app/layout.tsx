@@ -17,21 +17,39 @@ const manrope = Manrope({
   display: "swap",
 });
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://hihenry.vercel.app";
+const DESCRIPTION =
+  "Agenda, notas de voz y nómina del equipo en una PWA mobile-first para CEOs.";
+
 export const metadata: Metadata = {
-  title: "Orellana Dashboard · CEO",
-  description:
-    "Calendario organizacional, notas de voz y recordatorios en una PWA mobile-first para ejecutivos.",
+  metadataBase: new URL(SITE_URL),
+  title: "HiHenry — Agenda del CEO",
+  description: DESCRIPTION,
   manifest: "/manifest.webmanifest",
-  applicationName: "Orellana Dashboard",
+  applicationName: "HiHenry",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Orellana Dashboard",
+    title: "HiHenry",
   },
   formatDetection: { telephone: false },
   icons: {
     icon: "/icons/icon-192.png",
-    apple: "/icons/icon-192.png",
+    apple: "/icons/apple-touch-icon.png",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "HiHenry",
+    title: "HiHenry — Agenda del CEO",
+    description: DESCRIPTION,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "HiHenry" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "HiHenry — Agenda del CEO",
+    description: DESCRIPTION,
+    images: ["/og.png"],
   },
 };
 

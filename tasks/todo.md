@@ -1,4 +1,11 @@
-# TODO — Orellana Dashboard
+# TODO — HiHenry
+
+## ✅ Hecho (v0.4 — 2026-06-30)
+- [x] Renombrado de marca a **HiHenry** (manifest, metadata, splash, avatar, install, ajustes)
+- [x] Logo propio → iconos PWA (192/512/maskable/apple), favicon e imagen Open Graph (compartir)
+- [x] metadataBase + Open Graph + Twitter card para vista previa del enlace
+- [x] Revertida la grabación de audio a la versión simple (sin pausa/idioma); timeslice para fiabilidad
+
 
 ## ✅ Hecho (v0.1 — 2026-06-29)
 - [x] Scaffolding Next.js 15 + TS + Tailwind v3 (manual, por nombre de carpeta con espacios)

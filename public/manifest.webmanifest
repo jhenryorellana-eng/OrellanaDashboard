@@ -1,7 +1,7 @@
 {
-  "name": "Orellana Dashboard · CEO",
-  "short_name": "Orellana",
-  "description": "Calendario organizacional, notas de voz y recordatorios en una PWA mobile-first para ejecutivos.",
+  "name": "HiHenry — Agenda del CEO",
+  "short_name": "HiHenry",
+  "description": "Agenda, notas de voz y nómina del equipo en una PWA mobile-first para CEOs.",
   "start_url": "/",
   "scope": "/",
   "id": "/",
@@ -30,6 +30,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }

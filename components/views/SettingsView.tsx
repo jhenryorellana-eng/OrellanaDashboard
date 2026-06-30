@@ -74,7 +74,7 @@ export default function SettingsView() {
         </button>
         <div>
           <h1 className="font-display text-3xl font-semibold">Ajustes</h1>
-          <p className="text-sm text-slate-400">Configura tu Orellana Dashboard.</p>
+          <p className="text-sm text-slate-400">Configura tu HiHenry.</p>
         </div>
       </header>
 

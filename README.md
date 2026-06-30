@@ -1,4 +1,4 @@
-# 🟡 Orellana Dashboard · CEO
+# 📅 HiHenry · Agenda del CEO
 
 PWA mobile-first para ejecutivos: calendario organizacional, notas de voz
 (transcripción + audio) y recordatorios locales. Diseño *dark glassmorphism*

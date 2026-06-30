@@ -38,9 +38,15 @@ export default function TodayView() {
         <Clock />
         <button
           onClick={() => setTab("settings")}
-          className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/5 font-display text-lg font-semibold text-gold"
+          aria-label="Ajustes"
+          className="h-11 w-11 overflow-hidden rounded-full border border-white/10 bg-white"
         >
-          O
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/icons/icon-192.png"
+            alt="HiHenry"
+            className="h-full w-full object-cover"
+          />
         </button>
       </header>
 

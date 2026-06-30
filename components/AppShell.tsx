@@ -70,13 +70,16 @@ export default function AppShell() {
 function BootSplash() {
   return (
     <div className="flex min-h-[80dvh] flex-col items-center justify-center gap-4">
-      <div className="relative grid h-16 w-16 place-items-center">
-        <span className="absolute inset-0 animate-pulse-ring rounded-2xl bg-gold/30" />
-        <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-gold-300 to-gold-600 font-display text-2xl font-bold text-ink-950">
-          O
-        </div>
+      <div className="relative h-20 w-20">
+        <span className="absolute inset-0 animate-pulse-ring rounded-3xl bg-azure/30" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/icons/icon-192.png"
+          alt="HiHenry"
+          className="h-20 w-20 rounded-3xl shadow-glass"
+        />
       </div>
-      <p className="font-display text-lg text-slate-400">Orellana Dashboard</p>
+      <p className="font-display text-lg text-slate-400">HiHenry</p>
     </div>
   );
 }

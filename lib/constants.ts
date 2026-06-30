@@ -98,5 +98,5 @@ export const REMINDER_OPTIONS: { label: string; value: number | null }[] = [
   { label: "1 día antes", value: 1440 },
 ];
 
-export const APP_NAME = "Orellana Dashboard";
+export const APP_NAME = "HiHenry";
 export const APP_TAGLINE = "Tu día, bajo control ejecutivo.";
