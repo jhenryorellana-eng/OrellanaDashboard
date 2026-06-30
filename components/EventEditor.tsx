@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Check, MapPin, AlignLeft, Video, Plus, X } from "lucide-react";
+import { Trash2, Check, MapPin, AlignLeft, Video } from "lucide-react";
 import { useStore } from "@/lib/store";
 import type {
   EventCategory,
@@ -89,11 +89,9 @@ export default function EventEditor() {
   const removeEvent = useStore((s) => s.removeEvent);
 
   const [form, setForm] = useState<FormState>(defaults(selectedDate));
-  const [showEnd, setShowEnd] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    setShowEnd(!!(editing?.endTime || draft?.endTime));
     setForm(
       editing
         ? {
@@ -147,54 +145,42 @@ export default function EventEditor() {
           className="w-full border-b border-white/10 bg-transparent pb-2 font-display text-2xl font-semibold text-slate-100 outline-none placeholder:text-slate-600 focus:border-gold/50"
         />
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Fecha">
+        <div className="flex items-end gap-2">
+          <label className="block min-w-0 flex-[1.5]">
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Fecha
+            </span>
             <input
               type="date"
               value={form.date}
               onChange={(e) => update("date", e.target.value)}
-              className="input-base"
+              className="input-base min-w-0 px-2"
             />
-          </Field>
-          <Field label="Inicio">
+          </label>
+          <label className="block min-w-0 flex-1">
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Inicio
+            </span>
             <input
               type="time"
               value={form.time}
               onChange={(e) => update("time", e.target.value)}
-              className="input-base"
+              className="input-base min-w-0 px-1.5 text-center"
             />
-          </Field>
+          </label>
+          <label className="block min-w-0 flex-1">
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Fin
+            </span>
+            <input
+              type="time"
+              value={form.endTime}
+              onChange={(e) => update("endTime", e.target.value)}
+              aria-label="Hora de fin (opcional)"
+              className="input-base min-w-0 px-1.5 text-center"
+            />
+          </label>
         </div>
-
-        {showEnd ? (
-          <Field label="Hora de fin">
-            <div className="flex items-center gap-2">
-              <input
-                type="time"
-                value={form.endTime}
-                onChange={(e) => update("endTime", e.target.value)}
-                className="input-base"
-              />
-              <button
-                onClick={() => {
-                  update("endTime", "");
-                  setShowEnd(false);
-                }}
-                aria-label="Quitar hora de fin"
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-slate-400 transition active:scale-95"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          </Field>
-        ) : (
-          <button
-            onClick={() => setShowEnd(true)}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-400 transition hover:text-slate-200"
-          >
-            <Plus size={15} /> Añadir hora de fin
-          </button>
-        )}
 
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
