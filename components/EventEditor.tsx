@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Check, MapPin, AlignLeft, Video } from "lucide-react";
+import { Trash2, Check, MapPin, AlignLeft, Video, Plus, X } from "lucide-react";
 import { useStore } from "@/lib/store";
 import type {
   EventCategory,
@@ -89,9 +89,11 @@ export default function EventEditor() {
   const removeEvent = useStore((s) => s.removeEvent);
 
   const [form, setForm] = useState<FormState>(defaults(selectedDate));
+  const [showEnd, setShowEnd] = useState(false);
 
   useEffect(() => {
     if (!open) return;
+    setShowEnd(!!(editing?.endTime || draft?.endTime));
     setForm(
       editing
         ? {
@@ -123,7 +125,8 @@ export default function EventEditor() {
       date: form.date,
       time: form.time,
       endTime: form.endTime || undefined,
-      location: form.location.trim() || undefined,
+      location:
+        form.category === "meeting" ? form.location.trim() || undefined : undefined,
       notes: form.notes.trim() || undefined,
       category: form.category,
       categoryDetail: form.categoryDetail.trim() || undefined,
@@ -163,14 +166,35 @@ export default function EventEditor() {
           </Field>
         </div>
 
-        <Field label="Fin (opcional)">
-          <input
-            type="time"
-            value={form.endTime}
-            onChange={(e) => update("endTime", e.target.value)}
-            className="input-base"
-          />
-        </Field>
+        {showEnd ? (
+          <Field label="Hora de fin">
+            <div className="flex items-center gap-2">
+              <input
+                type="time"
+                value={form.endTime}
+                onChange={(e) => update("endTime", e.target.value)}
+                className="input-base"
+              />
+              <button
+                onClick={() => {
+                  update("endTime", "");
+                  setShowEnd(false);
+                }}
+                aria-label="Quitar hora de fin"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-slate-400 transition active:scale-95"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </Field>
+        ) : (
+          <button
+            onClick={() => setShowEnd(true)}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-400 transition hover:text-slate-200"
+          >
+            <Plus size={15} /> Añadir hora de fin
+          </button>
+        )}
 
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -237,34 +261,66 @@ export default function EventEditor() {
         </AnimatePresence>
 
         {form.category === "meeting" && (
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Modalidad
-            </p>
-            <div className="flex gap-2">
-              {(
-                [
-                  { key: "presencial", label: "Presencial", icon: MapPin },
-                  { key: "digital", label: "Digital", icon: Video },
-                ] as const
-              ).map((m) => {
-                const active = form.modality === m.key;
-                const Icon = m.icon;
-                return (
-                  <button
-                    key={m.key}
-                    onClick={() => update("modality", m.key)}
-                    className={cn(
-                      "flex flex-1 items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-semibold transition",
-                      active
-                        ? "border-transparent bg-azure/20 text-azure"
-                        : "border-white/10 text-slate-300",
-                    )}
-                  >
-                    <Icon size={16} /> {m.label}
-                  </button>
-                );
-              })}
+          <div className="space-y-3">
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Modalidad
+              </p>
+              <div className="flex gap-2">
+                {(
+                  [
+                    { key: "presencial", label: "Presencial", icon: MapPin },
+                    { key: "digital", label: "Digital", icon: Video },
+                  ] as const
+                ).map((m) => {
+                  const active = form.modality === m.key;
+                  const Icon = m.icon;
+                  return (
+                    <button
+                      key={m.key}
+                      onClick={() => {
+                        if (m.key !== form.modality) {
+                          setForm((f) => ({ ...f, modality: m.key, location: "" }));
+                        }
+                      }}
+                      className={cn(
+                        "flex flex-1 items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-semibold transition",
+                        active
+                          ? "border-transparent bg-azure/20 text-azure"
+                          : "border-white/10 text-slate-300",
+                      )}
+                    >
+                      <Icon size={16} /> {m.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Caja que se abre según la modalidad elegida */}
+            <div
+              className="rounded-2xl border border-azure/30 bg-azure/[0.08] p-3"
+            >
+              <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-azure">
+                {form.modality === "digital" ? (
+                  <Video size={16} />
+                ) : (
+                  <MapPin size={16} />
+                )}
+                {form.modality === "digital"
+                  ? "Enlace de la videollamada"
+                  : "Ubicación"}
+              </label>
+              <input
+                value={form.location}
+                onChange={(e) => update("location", e.target.value)}
+                placeholder={
+                  form.modality === "digital"
+                    ? "Zoom, Meet, WhatsApp…"
+                    : "Oficina, dirección, lugar…"
+                }
+                className="input-base"
+              />
             </div>
           </div>
         )}
@@ -311,15 +367,6 @@ export default function EventEditor() {
               </option>
             ))}
           </select>
-        </Field>
-
-        <Field label="Ubicación" icon={<MapPin size={14} />}>
-          <input
-            value={form.location}
-            onChange={(e) => update("location", e.target.value)}
-            placeholder="Oficina, Zoom, ciudad…"
-            className="input-base"
-          />
         </Field>
 
         <Field label="Notas" icon={<AlignLeft size={14} />}>

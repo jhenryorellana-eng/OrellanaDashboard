@@ -58,21 +58,23 @@ export default function EventCard({
             {formatHour(event.time)}
             {event.endTime ? ` – ${formatHour(event.endTime)}` : ""}
           </span>
-          {event.location && (
+          {event.modality ? (
             <span className="inline-flex items-center gap-1 truncate">
-              <MapPin size={12} />
-              {event.location}
-            </span>
-          )}
-          {event.modality && (
-            <span className="inline-flex items-center gap-1">
               {event.modality === "digital" ? (
                 <Video size={12} />
               ) : (
                 <MapPin size={12} />
               )}
-              {event.modality === "digital" ? "Digital" : "Presencial"}
+              {event.location ||
+                (event.modality === "digital" ? "Digital" : "Presencial")}
             </span>
+          ) : (
+            event.location && (
+              <span className="inline-flex items-center gap-1 truncate">
+                <MapPin size={12} />
+                {event.location}
+              </span>
+            )
           )}
           {event.reminderMinutes != null && (
             <span className="inline-flex items-center gap-1 text-gold/80">
