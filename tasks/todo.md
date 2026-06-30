@@ -2,8 +2,10 @@
 
 ## ✅ Hecho (v0.6 — 2026-06-30)
 - [x] Nueva sección **Radar Tech**: descubre eventos de tecnología/IA y noticias con IA
-- [x] IA: endpoint `/api/discover` con **Gemini 3.5 Flash + Google Search grounding** (configurable)
-- [x] API key de Gemini configurable en Ajustes (o env `GEMINI_API_KEY`); región configurable
+- [x] IA: endpoint `/api/discover` con SDK `@google/genai`, **Gemini 2.5 Flash-Lite + Google Search grounding** (modelo configurable; 3.1-flash-lite+grounding no tenía cuota en la key de prueba)
+- [x] Reintentos automáticos ante 503 (saturación) + mensajes de error claros
+- [x] API key de Gemini en Ajustes (o env `GEMINI_API_KEY`, en `.env.local` local); región configurable
+- [x] Verificado con datos REALES: eventos y noticias de Utah descubiertos por IA
 - [x] Feed (eventos/noticias) + RSVP (Asistiré/Tal vez/No) + link de inscripción + "Agendar"
 - [x] Vista de **calendario** con los eventos (puntos por día) para visión ordenada
 - [x] Alerta/acceso "Radar Tech" en el dashboard Hoy

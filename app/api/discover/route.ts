@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { GoogleGenAI } from "@google/genai";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
 
 interface RawItem {
   kind: "event" | "news";
@@ -79,6 +80,41 @@ function extractJSON(text: string): RawItem[] {
     }));
 }
 
+async function generateWithRetry(
+  ai: GoogleGenAI,
+  prompt: string,
+  attempts = 3,
+): Promise<string> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const response = await ai.models.generateContent({
+        model: DEFAULT_MODEL,
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: { tools: [{ googleSearch: {} }], temperature: 0.4 },
+      });
+      return response.text ?? "";
+    } catch (e) {
+      lastErr = e;
+      const msg = e instanceof Error ? e.message : String(e);
+      const retryable = /503|UNAVAILABLE|overloaded|high demand/i.test(msg);
+      if (!retryable || i === attempts - 1) throw e;
+      await new Promise((r) => setTimeout(r, 1200 * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
+
+function friendlyError(message: string): string {
+  if (/429|quota|rate limit/i.test(message))
+    return "Cuota de Gemini excedida. Intenta más tarde.";
+  if (/503|UNAVAILABLE|overloaded|high demand/i.test(message))
+    return "El modelo está saturado. Intenta de nuevo en unos segundos.";
+  if (/api[_ ]?key|permission|401|403/i.test(message))
+    return "API key inválida o sin permisos. Revísala en Ajustes.";
+  return `Gemini: ${message.slice(0, 160)}`;
+}
+
 export async function POST(req: Request) {
   let body: { region?: string; topics?: string; apiKey?: string; limit?: number };
   try {
@@ -100,42 +136,16 @@ export async function POST(req: Request) {
   const limit = Math.min(Math.max(body.limit || 12, 4), 20);
   const today = new Date().toISOString().slice(0, 10);
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${DEFAULT_MODEL}:generateContent?key=${apiKey}`;
-
   try {
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          { role: "user", parts: [{ text: buildPrompt(region, topics, today, limit) }] },
-        ],
-        tools: [{ google_search: {} }],
-        generationConfig: { temperature: 0.4 },
-      }),
-    });
-
-    if (!res.ok) {
-      const detail = await res.text();
-      return NextResponse.json(
-        { error: `Gemini respondió ${res.status}. Revisa tu API key o cuota.`, detail: detail.slice(0, 400) },
-        { status: 502 },
-      );
-    }
-
-    const data = await res.json();
-    const text: string =
-      data?.candidates?.[0]?.content?.parts
-        ?.map((p: { text?: string }) => p.text)
-        .filter(Boolean)
-        .join("") ?? "";
-
+    const ai = new GoogleGenAI({ apiKey });
+    const text = await generateWithRetry(
+      ai,
+      buildPrompt(region, topics, today, limit),
+    );
     const items = extractJSON(text);
     return NextResponse.json({ items, model: DEFAULT_MODEL });
   } catch (err) {
-    return NextResponse.json(
-      { error: "No se pudo conectar con Gemini.", detail: String(err).slice(0, 200) },
-      { status: 502 },
-    );
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: friendlyError(message) }, { status: 502 });
   }
 }
