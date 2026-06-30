@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Bell, MapPin, Clock3 } from "lucide-react";
+import { Bell, MapPin, Clock3, Video } from "lucide-react";
 import type { EventItem } from "@/lib/types";
 import { CATEGORY_META, PRIORITY_META } from "@/lib/constants";
 import { formatHour, cn } from "@/lib/utils";
@@ -62,6 +62,16 @@ export default function EventCard({
             <span className="inline-flex items-center gap-1 truncate">
               <MapPin size={12} />
               {event.location}
+            </span>
+          )}
+          {event.modality && (
+            <span className="inline-flex items-center gap-1">
+              {event.modality === "digital" ? (
+                <Video size={12} />
+              ) : (
+                <MapPin size={12} />
+              )}
+              {event.modality === "digital" ? "Digital" : "Presencial"}
             </span>
           )}
           {event.reminderMinutes != null && (

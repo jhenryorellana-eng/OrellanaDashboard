@@ -8,6 +8,9 @@ export type EventCategory =
 
 export type Priority = "low" | "medium" | "high";
 
+/** Modalidad de una reunión */
+export type EventModality = "presencial" | "digital";
+
 export type TabKey =
   | "today"
   | "calendar"
@@ -156,8 +159,10 @@ export interface EventItem {
   endTime?: string;
   location?: string;
   category: EventCategory;
-  /** Detalle específico según la categoría (con quién, destino, monto…) */
+  /** Detalle específico según la categoría (tema, destino, monto…) */
   categoryDetail?: string;
+  /** Modalidad (solo reuniones): presencial o digital */
+  modality?: EventModality;
   priority: Priority;
   /** Minutos antes del evento para el recordatorio. null = sin recordatorio */
   reminderMinutes: number | null;

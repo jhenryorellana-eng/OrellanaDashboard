@@ -2,9 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Check, MapPin, AlignLeft } from "lucide-react";
+import { Trash2, Check, MapPin, AlignLeft, Video } from "lucide-react";
 import { useStore } from "@/lib/store";
-import type { EventCategory, Priority, EventItem } from "@/lib/types";
+import type {
+  EventCategory,
+  Priority,
+  EventItem,
+  EventModality,
+} from "@/lib/types";
 import {
   CATEGORY_ORDER,
   CATEGORY_META,
@@ -24,9 +29,20 @@ interface FormState {
   notes: string;
   category: EventCategory;
   categoryDetail: string;
+  modality: EventModality;
   priority: Priority;
   reminderMinutes: number | null;
 }
+
+/** Placeholder del primer campo según la categoría (lo que más importa). */
+const TITLE_PLACEHOLDER: Record<EventCategory, string> = {
+  meeting: "¿Con quién te reúnes?",
+  deadline: "¿Qué hay que entregar?",
+  travel: "¿A dónde viajas?",
+  finance: "Concepto del movimiento",
+  personal: "¿Qué tienes?",
+  other: "¿Qué hay en la agenda?",
+};
 
 function defaults(date: string): FormState {
   const next = new Date();
@@ -40,6 +56,7 @@ function defaults(date: string): FormState {
     notes: "",
     category: "meeting",
     categoryDetail: "",
+    modality: "presencial",
     priority: "medium",
     reminderMinutes: 15,
   };
@@ -86,6 +103,7 @@ export default function EventEditor() {
             notes: editing.notes ?? "",
             category: editing.category,
             categoryDetail: editing.categoryDetail ?? "",
+            modality: editing.modality ?? "presencial",
             priority: editing.priority,
             reminderMinutes: editing.reminderMinutes,
           }
@@ -109,6 +127,7 @@ export default function EventEditor() {
       notes: form.notes.trim() || undefined,
       category: form.category,
       categoryDetail: form.categoryDetail.trim() || undefined,
+      modality: form.category === "meeting" ? form.modality : undefined,
       priority: form.priority,
       reminderMinutes: form.reminderMinutes,
     });
@@ -121,7 +140,7 @@ export default function EventEditor() {
           autoFocus
           value={form.title}
           onChange={(e) => update("title", e.target.value)}
-          placeholder="¿Qué hay en la agenda?"
+          placeholder={TITLE_PLACEHOLDER[form.category]}
           className="w-full border-b border-white/10 bg-transparent pb-2 font-display text-2xl font-semibold text-slate-100 outline-none placeholder:text-slate-600 focus:border-gold/50"
         />
 
@@ -216,6 +235,39 @@ export default function EventEditor() {
             </div>
           </motion.div>
         </AnimatePresence>
+
+        {form.category === "meeting" && (
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Modalidad
+            </p>
+            <div className="flex gap-2">
+              {(
+                [
+                  { key: "presencial", label: "Presencial", icon: MapPin },
+                  { key: "digital", label: "Digital", icon: Video },
+                ] as const
+              ).map((m) => {
+                const active = form.modality === m.key;
+                const Icon = m.icon;
+                return (
+                  <button
+                    key={m.key}
+                    onClick={() => update("modality", m.key)}
+                    className={cn(
+                      "flex flex-1 items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-semibold transition",
+                      active
+                        ? "border-transparent bg-azure/20 text-azure"
+                        : "border-white/10 text-slate-300",
+                    )}
+                  >
+                    <Icon size={16} /> {m.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">

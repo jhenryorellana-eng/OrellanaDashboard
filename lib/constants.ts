@@ -24,9 +24,9 @@ export const CATEGORY_META: Record<EventCategory, CategoryMeta> = {
     label: "Reunión",
     color: "#6aa8ff",
     icon: "Users",
-    detailLabel: "¿Con quién es la reunión?",
-    detailPlaceholder: "Inversionistas, equipo, cliente…",
-    detailPrefix: "Con",
+    detailLabel: "Tema o motivo de la reunión",
+    detailPlaceholder: "Agenda, objetivo, asunto…",
+    detailPrefix: "Tema",
   },
   deadline: {
     label: "Deadline",
