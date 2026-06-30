@@ -18,15 +18,15 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Command Center · CEO Dashboard",
+  title: "Orellana Dashboard · CEO",
   description:
     "Calendario organizacional, notas de voz y recordatorios en una PWA mobile-first para ejecutivos.",
   manifest: "/manifest.webmanifest",
-  applicationName: "Command Center",
+  applicationName: "Orellana Dashboard",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Command Center",
+    title: "Orellana Dashboard",
   },
   formatDetection: { telephone: false },
   icons: {

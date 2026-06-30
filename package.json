@@ -1,8 +1,8 @@
 {
-  "name": "executive-command-center",
+  "name": "orellana-dashboard",
   "version": "0.1.0",
   "private": true,
-  "description": "CEO Command Center — calendario organizacional, notas de voz y recordatorios en una PWA mobile-first.",
+  "description": "Orellana Dashboard — calendario organizacional, notas de voz y recordatorios en una PWA mobile-first para CEOs.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

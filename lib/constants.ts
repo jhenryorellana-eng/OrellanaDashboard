@@ -12,15 +12,62 @@ export interface CategoryMeta {
     | "Wallet"
     | "Heart"
     | "Sparkles";
+  /** Pregunta contextual que aparece al elegir esta categoría */
+  detailLabel: string;
+  detailPlaceholder: string;
+  /** Prefijo corto para mostrar el detalle en la tarjeta del evento */
+  detailPrefix: string;
 }
 
 export const CATEGORY_META: Record<EventCategory, CategoryMeta> = {
-  meeting: { label: "Reunión", color: "#6aa8ff", icon: "Users" },
-  deadline: { label: "Deadline", color: "#ff6f6f", icon: "Flag" },
-  travel: { label: "Viaje", color: "#4fe3c1", icon: "Plane" },
-  finance: { label: "Finanzas", color: "#f5b642", icon: "Wallet" },
-  personal: { label: "Personal", color: "#b794f6", icon: "Heart" },
-  other: { label: "Otro", color: "#8aa0c0", icon: "Sparkles" },
+  meeting: {
+    label: "Reunión",
+    color: "#6aa8ff",
+    icon: "Users",
+    detailLabel: "¿Con quién es la reunión?",
+    detailPlaceholder: "Inversionistas, equipo, cliente…",
+    detailPrefix: "Con",
+  },
+  deadline: {
+    label: "Deadline",
+    color: "#ff6f6f",
+    icon: "Flag",
+    detailLabel: "¿Qué hay que entregar?",
+    detailPlaceholder: "Entregable y responsable…",
+    detailPrefix: "Entrega",
+  },
+  travel: {
+    label: "Viaje",
+    color: "#4fe3c1",
+    icon: "Plane",
+    detailLabel: "¿A dónde viajas?",
+    detailPlaceholder: "Ciudad, vuelo, hotel…",
+    detailPrefix: "Destino",
+  },
+  finance: {
+    label: "Finanzas",
+    color: "#f5b642",
+    icon: "Wallet",
+    detailLabel: "Monto y concepto",
+    detailPlaceholder: "Ej. $5,000 — pago a proveedor",
+    detailPrefix: "Monto",
+  },
+  personal: {
+    label: "Personal",
+    color: "#b794f6",
+    icon: "Heart",
+    detailLabel: "¿De qué se trata?",
+    detailPlaceholder: "Detalle personal…",
+    detailPrefix: "Detalle",
+  },
+  other: {
+    label: "Otro",
+    color: "#8aa0c0",
+    icon: "Sparkles",
+    detailLabel: "Detalle del evento",
+    detailPlaceholder: "Añade contexto…",
+    detailPrefix: "Nota",
+  },
 };
 
 export const CATEGORY_ORDER: EventCategory[] = [
@@ -51,5 +98,5 @@ export const REMINDER_OPTIONS: { label: string; value: number | null }[] = [
   { label: "1 día antes", value: 1440 },
 ];
 
-export const APP_NAME = "Command Center";
+export const APP_NAME = "Orellana Dashboard";
 export const APP_TAGLINE = "Tu día, bajo control ejecutivo.";

@@ -1,6 +1,6 @@
 {
-  "name": "Command Center · CEO Dashboard",
-  "short_name": "Command Center",
+  "name": "Orellana Dashboard · CEO",
+  "short_name": "Orellana",
   "description": "Calendario organizacional, notas de voz y recordatorios en una PWA mobile-first para ejecutivos.",
   "start_url": "/",
   "scope": "/",

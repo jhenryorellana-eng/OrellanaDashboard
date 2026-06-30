@@ -40,7 +40,7 @@ export default function TodayView() {
           onClick={() => setTab("settings")}
           className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/5 font-display text-lg font-semibold text-gold"
         >
-          C
+          O
         </button>
       </header>
 

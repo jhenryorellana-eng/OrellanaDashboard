@@ -28,7 +28,7 @@ export default function InstallPrompt() {
             <Download size={18} className="text-gold" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">Instala Command Center</p>
+            <p className="text-sm font-semibold">Instala Orellana Dashboard</p>
             <p className="text-xs text-slate-400">Acceso directo y notificaciones.</p>
           </div>
           <button

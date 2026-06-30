@@ -64,7 +64,7 @@ export default function SettingsView() {
     <div className="space-y-6 pt-2">
       <header>
         <h1 className="font-display text-3xl font-semibold">Ajustes</h1>
-        <p className="text-sm text-slate-400">Configura tu Command Center.</p>
+        <p className="text-sm text-slate-400">Configura tu Orellana Dashboard.</p>
       </header>
 
       <Group title="Notificaciones">

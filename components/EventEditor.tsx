@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Check, MapPin, AlignLeft } from "lucide-react";
 import { useStore } from "@/lib/store";
 import type { EventCategory, Priority } from "@/lib/types";
@@ -22,6 +23,7 @@ interface FormState {
   location: string;
   notes: string;
   category: EventCategory;
+  categoryDetail: string;
   priority: Priority;
   reminderMinutes: number | null;
 }
@@ -37,6 +39,7 @@ function defaults(date: string): FormState {
     location: "",
     notes: "",
     category: "meeting",
+    categoryDetail: "",
     priority: "medium",
     reminderMinutes: 15,
   };
@@ -64,6 +67,7 @@ export default function EventEditor() {
             location: editing.location ?? "",
             notes: editing.notes ?? "",
             category: editing.category,
+            categoryDetail: editing.categoryDetail ?? "",
             priority: editing.priority,
             reminderMinutes: editing.reminderMinutes,
           }
@@ -86,6 +90,7 @@ export default function EventEditor() {
       location: form.location.trim() || undefined,
       notes: form.notes.trim() || undefined,
       category: form.category,
+      categoryDetail: form.categoryDetail.trim() || undefined,
       priority: form.priority,
       reminderMinutes: form.reminderMinutes,
     });
@@ -159,6 +164,40 @@ export default function EventEditor() {
             })}
           </div>
         </div>
+
+        {/* Campo contextual: cambia según la categoría que elija Henry */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={form.category}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <div
+              className="rounded-2xl border p-3"
+              style={{
+                borderColor: `${CATEGORY_META[form.category].color}55`,
+                background: `${CATEGORY_META[form.category].color}12`,
+              }}
+            >
+              <label
+                className="mb-2 flex items-center gap-2 text-sm font-semibold"
+                style={{ color: CATEGORY_META[form.category].color }}
+              >
+                <CategoryIcon category={form.category} size={16} />
+                {CATEGORY_META[form.category].detailLabel}
+              </label>
+              <input
+                value={form.categoryDetail}
+                onChange={(e) => update("categoryDetail", e.target.value)}
+                placeholder={CATEGORY_META[form.category].detailPlaceholder}
+                className="input-base"
+              />
+            </div>
+          </motion.div>
+        </AnimatePresence>
 
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">

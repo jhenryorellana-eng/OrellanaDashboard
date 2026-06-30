@@ -22,6 +22,8 @@ export interface EventItem {
   endTime?: string;
   location?: string;
   category: EventCategory;
+  /** Detalle específico según la categoría (con quién, destino, monto…) */
+  categoryDetail?: string;
   priority: Priority;
   /** Minutos antes del evento para el recordatorio. null = sin recordatorio */
   reminderMinutes: number | null;

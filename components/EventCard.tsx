@@ -70,6 +70,14 @@ export default function EventCard({
             </span>
           )}
         </div>
+        {event.categoryDetail && (
+          <p className="mt-1 truncate text-xs text-slate-400">
+            <span className="font-semibold" style={{ color: meta.color }}>
+              {meta.detailPrefix}:
+            </span>{" "}
+            {event.categoryDetail}
+          </p>
+        )}
       </div>
 
       <span

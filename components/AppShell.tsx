@@ -69,10 +69,10 @@ function BootSplash() {
       <div className="relative grid h-16 w-16 place-items-center">
         <span className="absolute inset-0 animate-pulse-ring rounded-2xl bg-gold/30" />
         <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-gold-300 to-gold-600 font-display text-2xl font-bold text-ink-950">
-          C
+          O
         </div>
       </div>
-      <p className="font-display text-lg text-slate-400">Command Center</p>
+      <p className="font-display text-lg text-slate-400">Orellana Dashboard</p>
     </div>
   );
 }
