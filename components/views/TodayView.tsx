@@ -3,7 +3,14 @@
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarDays, Mic, Sparkles, ArrowRight, CreditCard } from "lucide-react";
+import {
+  CalendarDays,
+  Mic,
+  Sparkles,
+  ArrowRight,
+  CreditCard,
+  Radar,
+} from "lucide-react";
 import { useStore } from "@/lib/store";
 import {
   eventsForDate,
@@ -11,6 +18,7 @@ import {
   nextEvent,
 } from "@/lib/selectors";
 import { upcomingBills, dueStatus } from "@/lib/bills";
+import { upcomingEvents } from "@/lib/tech";
 import { dateKey, toDateTime, formatHour } from "@/lib/utils";
 import Clock from "../Clock";
 import ProgressRing from "../ProgressRing";
@@ -21,10 +29,12 @@ export default function TodayView() {
   const events = useStore((s) => s.events);
   const notes = useStore((s) => s.notes);
   const bills = useStore((s) => s.bills);
+  const techItems = useStore((s) => s.techItems);
   const openEditor = useStore((s) => s.openEditor);
   const setTab = useStore((s) => s.setTab);
 
   const duePayments = upcomingBills(bills, 7);
+  const techEvents = upcomingEvents(techItems);
 
   const today = dateKey(new Date());
   const todays = eventsForDate(events, today);
@@ -132,6 +142,25 @@ export default function TodayView() {
           })()}
         </button>
       )}
+
+      {/* Radar Tech */}
+      <button
+        onClick={() => setTab("radar")}
+        className="glass flex w-full items-center gap-3 p-4 text-left transition active:scale-[0.99]"
+      >
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-azure/15">
+          <Radar size={20} className="text-azure" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-slate-100">Radar Tech</p>
+          <p className="truncate text-xs text-slate-400">
+            {techEvents.length > 0
+              ? `${techEvents.length} eventos próximos · IA`
+              : "Eventos y noticias de IA al día"}
+          </p>
+        </div>
+        <ArrowRight className="text-slate-500" size={20} />
+      </button>
 
       {/* Próximo evento destacado */}
       {next && (

@@ -1,5 +1,18 @@
 # TODO — HiHenry
 
+## ✅ Hecho (v0.6 — 2026-06-30)
+- [x] Nueva sección **Radar Tech**: descubre eventos de tecnología/IA y noticias con IA
+- [x] IA: endpoint `/api/discover` con **Gemini 3.5 Flash + Google Search grounding** (configurable)
+- [x] API key de Gemini configurable en Ajustes (o env `GEMINI_API_KEY`); región configurable
+- [x] Feed (eventos/noticias) + RSVP (Asistiré/Tal vez/No) + link de inscripción + "Agendar"
+- [x] Vista de **calendario** con los eventos (puntos por día) para visión ordenada
+- [x] Alerta/acceso "Radar Tech" en el dashboard Hoy
+- [x] IndexedDB v4 (store `tech`); merge sin duplicar y conservando RSVP
+- [x] FIX: navegación se atascaba al salir de una vista (AnimatePresence mode="wait") → animación de entrada simple
+- [x] Verificado: feed, calendario, RSVP, error sin key, navegación ida/vuelta
+
+> Pendiente para que la IA funcione: agregar la API key de Gemini (Ajustes o env) — gratis en https://aistudio.google.com/apikey
+
 ## ✅ Hecho (v0.5 — 2026-06-30)
 - [x] Nueva sección **Pagos**: tarjetas, servicios, suscripciones, préstamos, renta, impuestos
 - [x] Ficha: monto+moneda, frecuencia, próximo vencimiento, banco/empresa, referencia, domiciliado, recordatorio, notas

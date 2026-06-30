@@ -10,6 +10,8 @@ import {
   ShieldCheck,
   Github,
   ChevronLeft,
+  Sparkles,
+  ExternalLink,
 } from "lucide-react";
 import {
   notificationPermission,
@@ -24,9 +26,28 @@ import { APP_NAME } from "@/lib/constants";
 
 export default function SettingsView() {
   const setTab = useStore((s) => s.setTab);
+  const geminiKey = useStore((s) => s.geminiKey);
+  const setGeminiKey = useStore((s) => s.setGeminiKey);
+  const radarRegion = useStore((s) => s.radarRegion);
+  const setRadarRegion = useStore((s) => s.setRadarRegion);
   const [perm, setPerm] = useState<NotificationPermission>("default");
   const [installable, setInstallable] = useState(false);
   const [standalone, setStandalone] = useState(false);
+  const [keyInput, setKeyInput] = useState("");
+  const [regionInput, setRegionInput] = useState("");
+  const [savedRadar, setSavedRadar] = useState(false);
+
+  useEffect(() => {
+    setKeyInput(geminiKey);
+    setRegionInput(radarRegion);
+  }, [geminiKey, radarRegion]);
+
+  function saveRadar() {
+    setGeminiKey(keyInput.trim());
+    setRadarRegion(regionInput.trim() || "Utah, EE.UU.");
+    setSavedRadar(true);
+    setTimeout(() => setSavedRadar(false), 1500);
+  }
 
   useEffect(() => {
     setPerm(notificationPermission());
@@ -122,6 +143,54 @@ export default function SettingsView() {
             <ActionBtn onClick={() => promptInstall()}>Instalar</ActionBtn>
           )}
         </Row>
+      </Group>
+
+      <Group title="Radar Tech (IA)">
+        <div className="space-y-3 p-4">
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+              API key de Gemini
+            </span>
+            <input
+              type="password"
+              value={keyInput}
+              onChange={(e) => setKeyInput(e.target.value)}
+              placeholder="AIza…"
+              className="input-base"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Región por defecto
+            </span>
+            <input
+              value={regionInput}
+              onChange={(e) => setRegionInput(e.target.value)}
+              placeholder="Utah, EE.UU."
+              className="input-base"
+            />
+          </label>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={saveRadar}
+              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-br from-gold-300 to-gold-600 px-4 py-1.5 text-sm font-semibold text-ink-950 transition active:scale-95"
+            >
+              <Sparkles size={14} /> {savedRadar ? "Guardado ✓" : "Guardar"}
+            </button>
+            <a
+              href="https://aistudio.google.com/apikey"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-sm font-semibold text-slate-300 transition active:scale-95"
+            >
+              <ExternalLink size={14} /> Obtener key
+            </a>
+          </div>
+          <p className="text-xs text-slate-500">
+            La clave se guarda solo en este dispositivo y se usa para buscar
+            eventos y noticias con IA (Gemini).
+          </p>
+        </div>
       </Group>
 
       <Group title="Datos">

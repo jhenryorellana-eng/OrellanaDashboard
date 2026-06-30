@@ -4,6 +4,8 @@ import type {
   VoiceNote,
   StaffMember,
   Bill,
+  TechItem,
+  RsvpStatus,
   TabKey,
 } from "./types";
 import * as db from "./db";
@@ -14,9 +16,12 @@ import {
 } from "./notifications";
 import { currentPeriodKey } from "./staff";
 import { advanceDue } from "./bills";
+import { mergeTechItems, REGION_DEFAULT, TOPICS_DEFAULT } from "./tech";
 import { uid, dateKey, sha256 } from "./utils";
 
 const PIN_META_KEY = "staffPinHash";
+const REGION_META_KEY = "radarRegion";
+const GEMINI_META_KEY = "geminiApiKey";
 
 type StaffInput = Omit<StaffMember, "id" | "createdAt" | "payments"> & {
   id?: string;
@@ -25,6 +30,18 @@ type StaffInput = Omit<StaffMember, "id" | "createdAt" | "payments"> & {
 type BillInput = Omit<Bill, "id" | "createdAt" | "payments"> & {
   id?: string;
 };
+
+interface RawTech {
+  kind?: string;
+  title: string;
+  summary?: string;
+  date?: string | null;
+  time?: string | null;
+  location?: string | null;
+  url?: string | null;
+  source?: string | null;
+  topics?: string[];
+}
 
 interface CommandState {
   hydrated: boolean;
@@ -42,6 +59,13 @@ interface CommandState {
   // Pagos (UI)
   billEditorOpen: boolean;
   editingBill: Bill | null;
+
+  // Radar (IA)
+  techItems: TechItem[];
+  techLoading: boolean;
+  techError: string | null;
+  radarRegion: string;
+  geminiKey: string;
 
   // UI
   activeTab: TabKey;
@@ -84,6 +108,13 @@ interface CommandState {
   openBillEditor: (bill?: Bill | null) => void;
   closeBillEditor: () => void;
 
+  // radar
+  discoverTech: () => Promise<void>;
+  setTechRsvp: (id: string, status: RsvpStatus) => Promise<void>;
+  removeTech: (id: string) => Promise<void>;
+  setRadarRegion: (region: string) => Promise<void>;
+  setGeminiKey: (key: string) => Promise<void>;
+
   // UI actions
   setTab: (tab: TabKey) => void;
   setSelectedDate: (date: string) => void;
@@ -108,6 +139,11 @@ export const useStore = create<CommandState>((set, get) => ({
   staffUnlocked: false,
   billEditorOpen: false,
   editingBill: null,
+  techItems: [],
+  techLoading: false,
+  techError: null,
+  radarRegion: REGION_DEFAULT,
+  geminiKey: "",
   activeTab: "today",
   selectedDate: dateKey(new Date()),
   editorOpen: false,
@@ -116,19 +152,26 @@ export const useStore = create<CommandState>((set, get) => ({
 
   hydrate: async () => {
     if (get().hydrated) return;
-    const [events, notes, staff, bills, pinHash] = await Promise.all([
-      db.getAllEvents(),
-      db.getAllNotes(),
-      db.getAllStaff(),
-      db.getAllBills(),
-      db.getMeta<string>(PIN_META_KEY),
-    ]);
+    const [events, notes, staff, bills, tech, pinHash, region, gemini] =
+      await Promise.all([
+        db.getAllEvents(),
+        db.getAllNotes(),
+        db.getAllStaff(),
+        db.getAllBills(),
+        db.getAllTech(),
+        db.getMeta<string>(PIN_META_KEY),
+        db.getMeta<string>(REGION_META_KEY),
+        db.getMeta<string>(GEMINI_META_KEY),
+      ]);
     set({
       events,
       notes,
       staff,
       bills,
+      techItems: tech,
       staffPinSet: !!pinHash,
+      radarRegion: region || REGION_DEFAULT,
+      geminiKey: gemini || "",
       hydrated: true,
     });
     reschedule(events);
@@ -323,6 +366,72 @@ export const useStore = create<CommandState>((set, get) => ({
   openBillEditor: (bill = null) =>
     set({ billEditorOpen: true, editingBill: bill }),
   closeBillEditor: () => set({ billEditorOpen: false, editingBill: null }),
+
+  discoverTech: async () => {
+    if (get().techLoading) return;
+    set({ techLoading: true, techError: null });
+    try {
+      const res = await fetch("/api/discover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          region: get().radarRegion,
+          topics: TOPICS_DEFAULT,
+          apiKey: get().geminiKey || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        set({
+          techError: data?.error || "No se pudo actualizar el radar.",
+          techLoading: false,
+        });
+        return;
+      }
+      const incoming: TechItem[] = ((data.items as RawTech[]) ?? []).map((r) => ({
+        id: uid(),
+        kind: r.kind === "news" ? "news" : "event",
+        title: r.title,
+        summary: r.summary ?? "",
+        date: r.date ?? undefined,
+        time: r.time ?? undefined,
+        location: r.location ?? undefined,
+        url: r.url ?? undefined,
+        source: r.source ?? undefined,
+        topics: r.topics ?? [],
+        rsvp: null,
+        createdAt: Date.now(),
+      }));
+      const merged = mergeTechItems(get().techItems, incoming);
+      await db.putManyTech(merged);
+      set({ techItems: merged, techLoading: false });
+    } catch {
+      set({ techError: "No se pudo conectar con el servidor.", techLoading: false });
+    }
+  },
+
+  setTechRsvp: async (id, status) => {
+    const item = get().techItems.find((i) => i.id === id);
+    if (!item) return;
+    const updated = { ...item, rsvp: item.rsvp === status ? null : status };
+    await db.putTech(updated);
+    set({ techItems: get().techItems.map((i) => (i.id === id ? updated : i)) });
+  },
+
+  removeTech: async (id) => {
+    await db.deleteTech(id);
+    set({ techItems: get().techItems.filter((i) => i.id !== id) });
+  },
+
+  setRadarRegion: async (region) => {
+    await db.setMeta(REGION_META_KEY, region);
+    set({ radarRegion: region });
+  },
+
+  setGeminiKey: async (key) => {
+    await db.setMeta(GEMINI_META_KEY, key);
+    set({ geminiKey: key });
+  },
 
   setTab: (tab) => set({ activeTab: tab }),
   setSelectedDate: (date) => set({ selectedDate: date }),

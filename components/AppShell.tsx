@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { initInstallCapture } from "@/lib/pwa";
 import TodayView from "./views/TodayView";
@@ -9,6 +9,7 @@ import CalendarView from "./views/CalendarView";
 import NotesView from "./views/NotesView";
 import PaymentsView from "./views/PaymentsView";
 import StaffView from "./views/StaffView";
+import RadarView from "./views/RadarView";
 import SettingsView from "./views/SettingsView";
 import BottomNav from "./BottomNav";
 import EventEditor from "./EventEditor";
@@ -22,6 +23,7 @@ const VIEWS = {
   notes: NotesView,
   payments: PaymentsView,
   staff: StaffView,
+  radar: RadarView,
   settings: SettingsView,
 } as const;
 
@@ -49,17 +51,14 @@ export default function AppShell() {
       ) : (
         <>
           <InstallPrompt />
-          <AnimatePresence mode="wait">
-            <motion.main
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <ActiveView />
-            </motion.main>
-          </AnimatePresence>
+          <motion.main
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <ActiveView />
+          </motion.main>
         </>
       )}
 

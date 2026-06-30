@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
-import type { EventItem, VoiceNote, StaffMember, Bill } from "./types";
+import type { EventItem, VoiceNote, StaffMember, Bill, TechItem } from "./types";
 
 interface CommandCenterDB extends DBSchema {
   events: {
@@ -20,6 +20,10 @@ interface CommandCenterDB extends DBSchema {
     key: string;
     value: Bill;
   };
+  tech: {
+    key: string;
+    value: TechItem;
+  };
   meta: {
     key: string;
     value: unknown;
@@ -27,7 +31,7 @@ interface CommandCenterDB extends DBSchema {
 }
 
 const DB_NAME = "exec-command-center";
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 let dbPromise: Promise<IDBPDatabase<CommandCenterDB>> | null = null;
 
@@ -50,6 +54,9 @@ function getDB() {
         }
         if (oldVersion < 3) {
           db.createObjectStore("bills", { keyPath: "id" });
+        }
+        if (oldVersion < 4) {
+          db.createObjectStore("tech", { keyPath: "id" });
         }
       },
     });
@@ -115,6 +122,28 @@ export async function putBill(bill: Bill): Promise<void> {
 export async function deleteBill(id: string): Promise<void> {
   const db = await getDB();
   await db.delete("bills", id);
+}
+
+export async function getAllTech(): Promise<TechItem[]> {
+  const db = await getDB();
+  return db.getAll("tech");
+}
+
+export async function putTech(item: TechItem): Promise<void> {
+  const db = await getDB();
+  await db.put("tech", item);
+}
+
+export async function putManyTech(items: TechItem[]): Promise<void> {
+  const db = await getDB();
+  const tx = db.transaction("tech", "readwrite");
+  await Promise.all(items.map((i) => tx.store.put(i)));
+  await tx.done;
+}
+
+export async function deleteTech(id: string): Promise<void> {
+  const db = await getDB();
+  await db.delete("tech", id);
 }
 
 export async function getMeta<T>(key: string): Promise<T | undefined> {

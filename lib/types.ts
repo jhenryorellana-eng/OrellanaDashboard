@@ -14,7 +14,30 @@ export type TabKey =
   | "notes"
   | "payments"
   | "staff"
+  | "radar"
   | "settings";
+
+export type TechKind = "event" | "news";
+export type RsvpStatus = "going" | "maybe" | "skip";
+
+/** Evento o noticia descubierto por el Radar (IA). */
+export interface TechItem {
+  id: string;
+  kind: TechKind;
+  title: string;
+  summary: string;
+  /** Fecha del evento o de publicación yyyy-MM-dd */
+  date?: string;
+  time?: string;
+  location?: string;
+  /** Link de inscripción (evento) o del artículo (noticia) */
+  url?: string;
+  source?: string;
+  topics?: string[];
+  /** Decisión de asistencia (solo eventos) */
+  rsvp?: RsvpStatus | null;
+  createdAt: number;
+}
 
 export type BillCategory =
   | "tarjeta"
