@@ -8,7 +8,62 @@ export type EventCategory =
 
 export type Priority = "low" | "medium" | "high";
 
-export type TabKey = "today" | "calendar" | "notes" | "settings";
+export type TabKey = "today" | "calendar" | "notes" | "staff" | "settings";
+
+export type StaffStatus = "activo" | "vacaciones" | "inactivo";
+export type PayFrequency = "mensual" | "quincenal" | "semanal";
+export type AccountType = "ahorro" | "corriente" | "";
+export type PaymentMethod =
+  | "transferencia"
+  | "efectivo"
+  | "cheque"
+  | "pago_movil"
+  | "zelle"
+  | "otro";
+
+/** Un pago registrado a un miembro del equipo (historial). */
+export interface StaffPayment {
+  id: string;
+  /** Fecha en que se marcó pagado yyyy-MM-dd */
+  date: string;
+  amount: number;
+  /** Periodo que cubre (yyyy-MM, yyyy-MM-Q1/Q2 o yyyy-Www) */
+  period: string;
+  note?: string;
+}
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  role: string;
+  department?: string;
+  status: StaffStatus;
+  salary: number;
+  currency: string;
+  payFrequency: PayFrequency;
+  /** Día de pago del mes (1-31), ancla para calcular el próximo pago */
+  payDay: number;
+  /** Fecha de inicio yyyy-MM-dd, para calcular antigüedad */
+  hireDate?: string;
+  bank?: string;
+  accountNumber?: string;
+  accountType?: AccountType;
+  /** Titular de la cuenta (a veces distinto al empleado) */
+  accountHolder?: string;
+  /** Documento del titular de la cuenta */
+  holderId?: string;
+  paymentMethod: PaymentMethod;
+  /** Documento de identidad del empleado */
+  idNumber?: string;
+  phone?: string;
+  email?: string;
+  /** Recordatorio: días antes del pago. null = sin recordatorio */
+  reminderDaysBefore: number | null;
+  notes?: string;
+  /** Historial de pagos */
+  payments: StaffPayment[];
+  createdAt: number;
+}
 
 export interface EventItem {
   id: string;

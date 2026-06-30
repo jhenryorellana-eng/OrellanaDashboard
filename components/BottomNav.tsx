@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LayoutDashboard, CalendarDays, Mic, Settings, Plus } from "lucide-react";
+import { LayoutDashboard, CalendarDays, Mic, Users, Plus } from "lucide-react";
 import { useStore } from "@/lib/store";
 import type { TabKey } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -10,13 +10,28 @@ const TABS: { key: TabKey; label: string; icon: typeof LayoutDashboard }[] = [
   { key: "today", label: "Hoy", icon: LayoutDashboard },
   { key: "calendar", label: "Agenda", icon: CalendarDays },
   { key: "notes", label: "Notas", icon: Mic },
-  { key: "settings", label: "Ajustes", icon: Settings },
+  { key: "staff", label: "Equipo", icon: Users },
 ];
 
 export default function BottomNav() {
   const activeTab = useStore((s) => s.activeTab);
   const setTab = useStore((s) => s.setTab);
   const openEditor = useStore((s) => s.openEditor);
+  const openStaffEditor = useStore((s) => s.openStaffEditor);
+  const staffPinSet = useStore((s) => s.staffPinSet);
+  const staffUnlocked = useStore((s) => s.staffUnlocked);
+
+  const onStaff = activeTab === "staff";
+  const staffLocked = staffPinSet && !staffUnlocked;
+
+  function handleAdd() {
+    if (onStaff) {
+      if (staffLocked) return; // no agregar mientras está bloqueado
+      openStaffEditor(null);
+    } else {
+      openEditor(null);
+    }
+  }
 
   return (
     <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-safe">
@@ -26,8 +41,8 @@ export default function BottomNav() {
         ))}
 
         <button
-          onClick={() => openEditor(null)}
-          aria-label="Nuevo evento"
+          onClick={handleAdd}
+          aria-label={onStaff ? "Nueva persona" : "Nuevo evento"}
           className="relative -mt-7 grid h-14 w-14 shrink-0 place-items-center rounded-full bg-gradient-to-br from-gold-300 to-gold-600 text-ink-950 shadow-glow transition active:scale-90"
         >
           <span className="absolute inset-0 -z-10 animate-pulse-ring rounded-full bg-gold/40" />

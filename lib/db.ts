@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
-import type { EventItem, VoiceNote } from "./types";
+import type { EventItem, VoiceNote, StaffMember } from "./types";
 
 interface CommandCenterDB extends DBSchema {
   events: {
@@ -12,6 +12,10 @@ interface CommandCenterDB extends DBSchema {
     value: VoiceNote;
     indexes: { "by-created": number };
   };
+  staff: {
+    key: string;
+    value: StaffMember;
+  };
   meta: {
     key: string;
     value: unknown;
@@ -19,7 +23,7 @@ interface CommandCenterDB extends DBSchema {
 }
 
 const DB_NAME = "exec-command-center";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBPDatabase<CommandCenterDB>> | null = null;
 
@@ -29,12 +33,17 @@ function getDB() {
   }
   if (!dbPromise) {
     dbPromise = openDB<CommandCenterDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        const events = db.createObjectStore("events", { keyPath: "id" });
-        events.createIndex("by-date", "date");
-        const notes = db.createObjectStore("notes", { keyPath: "id" });
-        notes.createIndex("by-created", "createdAt");
-        db.createObjectStore("meta");
+      upgrade(db, oldVersion) {
+        if (oldVersion < 1) {
+          const events = db.createObjectStore("events", { keyPath: "id" });
+          events.createIndex("by-date", "date");
+          const notes = db.createObjectStore("notes", { keyPath: "id" });
+          notes.createIndex("by-created", "createdAt");
+          db.createObjectStore("meta");
+        }
+        if (oldVersion < 2) {
+          db.createObjectStore("staff", { keyPath: "id" });
+        }
       },
     });
   }
@@ -69,6 +78,21 @@ export async function putNote(note: VoiceNote): Promise<void> {
 export async function deleteNote(id: string): Promise<void> {
   const db = await getDB();
   await db.delete("notes", id);
+}
+
+export async function getAllStaff(): Promise<StaffMember[]> {
+  const db = await getDB();
+  return db.getAll("staff");
+}
+
+export async function putStaff(member: StaffMember): Promise<void> {
+  const db = await getDB();
+  await db.put("staff", member);
+}
+
+export async function deleteStaff(id: string): Promise<void> {
+  const db = await getDB();
+  await db.delete("staff", id);
 }
 
 export async function getMeta<T>(key: string): Promise<T | undefined> {

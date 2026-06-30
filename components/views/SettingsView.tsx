@@ -9,6 +9,7 @@ import {
   Smartphone,
   ShieldCheck,
   Github,
+  ChevronLeft,
 } from "lucide-react";
 import {
   notificationPermission,
@@ -22,6 +23,7 @@ import { useStore } from "@/lib/store";
 import { APP_NAME } from "@/lib/constants";
 
 export default function SettingsView() {
+  const setTab = useStore((s) => s.setTab);
   const [perm, setPerm] = useState<NotificationPermission>("default");
   const [installable, setInstallable] = useState(false);
   const [standalone, setStandalone] = useState(false);
@@ -62,9 +64,18 @@ export default function SettingsView() {
 
   return (
     <div className="space-y-6 pt-2">
-      <header>
-        <h1 className="font-display text-3xl font-semibold">Ajustes</h1>
-        <p className="text-sm text-slate-400">Configura tu Orellana Dashboard.</p>
+      <header className="flex items-center gap-3">
+        <button
+          onClick={() => setTab("today")}
+          aria-label="Volver"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 active:scale-95"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <div>
+          <h1 className="font-display text-3xl font-semibold">Ajustes</h1>
+          <p className="text-sm text-slate-400">Configura tu Orellana Dashboard.</p>
+        </div>
       </header>
 
       <Group title="Notificaciones">

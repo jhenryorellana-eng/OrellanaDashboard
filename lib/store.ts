@@ -1,13 +1,27 @@
 import { create } from "zustand";
-import type { EventItem, VoiceNote, TabKey } from "./types";
+import type { EventItem, VoiceNote, StaffMember, TabKey } from "./types";
 import * as db from "./db";
-import { scheduleReminders } from "./notifications";
-import { uid, dateKey } from "./utils";
+import { scheduleReminders, scheduleStaffReminders } from "./notifications";
+import { currentPeriodKey } from "./staff";
+import { uid, dateKey, sha256 } from "./utils";
+
+const PIN_META_KEY = "staffPinHash";
+
+type StaffInput = Omit<StaffMember, "id" | "createdAt" | "payments"> & {
+  id?: string;
+};
 
 interface CommandState {
   hydrated: boolean;
   events: EventItem[];
   notes: VoiceNote[];
+  staff: StaffMember[];
+
+  // Equipo (UI + seguridad)
+  staffEditorOpen: boolean;
+  editingStaff: StaffMember | null;
+  staffPinSet: boolean;
+  staffUnlocked: boolean;
 
   // UI
   activeTab: TabKey;
@@ -30,6 +44,18 @@ interface CommandState {
   togglePinNote: (id: string) => Promise<void>;
   linkNoteToDate: (id: string, date: string) => Promise<void>;
 
+  // staff
+  saveStaff: (input: StaffInput) => Promise<void>;
+  removeStaff: (id: string) => Promise<void>;
+  toggleStaffPaid: (id: string) => Promise<void>;
+  openStaffEditor: (member?: StaffMember | null) => void;
+  closeStaffEditor: () => void;
+
+  // staff PIN
+  setStaffPin: (pin: string) => Promise<void>;
+  removeStaffPin: () => Promise<void>;
+  unlockStaff: (pin: string) => Promise<boolean>;
+
   // UI actions
   setTab: (tab: TabKey) => void;
   setSelectedDate: (date: string) => void;
@@ -46,6 +72,11 @@ export const useStore = create<CommandState>((set, get) => ({
   hydrated: false,
   events: [],
   notes: [],
+  staff: [],
+  staffEditorOpen: false,
+  editingStaff: null,
+  staffPinSet: false,
+  staffUnlocked: false,
   activeTab: "today",
   selectedDate: dateKey(new Date()),
   editorOpen: false,
@@ -54,12 +85,15 @@ export const useStore = create<CommandState>((set, get) => ({
 
   hydrate: async () => {
     if (get().hydrated) return;
-    const [events, notes] = await Promise.all([
+    const [events, notes, staff, pinHash] = await Promise.all([
       db.getAllEvents(),
       db.getAllNotes(),
+      db.getAllStaff(),
+      db.getMeta<string>(PIN_META_KEY),
     ]);
-    set({ events, notes, hydrated: true });
+    set({ events, notes, staff, staffPinSet: !!pinHash, hydrated: true });
     reschedule(events);
+    scheduleStaffReminders(staff);
   },
 
   saveEvent: async (input) => {
@@ -111,6 +145,75 @@ export const useStore = create<CommandState>((set, get) => ({
     const updated = { ...note, linkedDate: date };
     await db.putNote(updated);
     set({ notes: get().notes.map((n) => (n.id === id ? updated : n)) });
+  },
+
+  saveStaff: async (input) => {
+    const existing = input.id
+      ? get().staff.find((m) => m.id === input.id)
+      : null;
+    const member: StaffMember = {
+      ...input,
+      id: input.id ?? uid(),
+      payments: existing?.payments ?? [],
+      createdAt: existing?.createdAt ?? Date.now(),
+    };
+    await db.putStaff(member);
+    const staff = existing
+      ? get().staff.map((m) => (m.id === member.id ? member : m))
+      : [...get().staff, member];
+    set({ staff, staffEditorOpen: false, editingStaff: null });
+    scheduleStaffReminders(staff);
+  },
+
+  removeStaff: async (id) => {
+    await db.deleteStaff(id);
+    const staff = get().staff.filter((m) => m.id !== id);
+    set({ staff, staffEditorOpen: false, editingStaff: null });
+    scheduleStaffReminders(staff);
+  },
+
+  toggleStaffPaid: async (id) => {
+    const member = get().staff.find((m) => m.id === id);
+    if (!member) return;
+    const key = currentPeriodKey(member.payFrequency);
+    const already = member.payments.some((p) => p.period === key);
+    const payments = already
+      ? member.payments.filter((p) => p.period !== key)
+      : [
+          ...member.payments,
+          {
+            id: uid(),
+            date: dateKey(new Date()),
+            amount: member.salary,
+            period: key,
+          },
+        ];
+    const updated = { ...member, payments };
+    await db.putStaff(updated);
+    set({ staff: get().staff.map((m) => (m.id === id ? updated : m)) });
+  },
+
+  openStaffEditor: (member = null) =>
+    set({ staffEditorOpen: true, editingStaff: member }),
+  closeStaffEditor: () => set({ staffEditorOpen: false, editingStaff: null }),
+
+  setStaffPin: async (pin) => {
+    const hash = await sha256(pin);
+    await db.setMeta(PIN_META_KEY, hash);
+    set({ staffPinSet: true, staffUnlocked: true });
+  },
+  removeStaffPin: async () => {
+    await db.setMeta(PIN_META_KEY, null);
+    set({ staffPinSet: false, staffUnlocked: true });
+  },
+  unlockStaff: async (pin) => {
+    const hash = await sha256(pin);
+    const stored = await db.getMeta<string>(PIN_META_KEY);
+    if (stored && hash === stored) {
+      set({ staffUnlocked: true });
+      return true;
+    }
+    return false;
   },
 
   setTab: (tab) => set({ activeTab: tab }),

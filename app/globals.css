@@ -61,6 +61,14 @@
     @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold;
   }
 
+  /* Campo de formulario reutilizable (editores de evento y de equipo) */
+  .input-base {
+    @apply w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-[0.95rem] text-slate-100 outline-none transition;
+  }
+  .input-base:focus {
+    @apply border-gold/50 bg-white/[0.06];
+  }
+
   /* Texto con degradado dorado para acentos de marca */
   .text-gradient-gold {
     background: linear-gradient(135deg, #fbe3a8 0%, #f5b642 45%, #dd9a26 100%);
@@ -101,4 +109,9 @@
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.12);
   border-radius: 999px;
+}
+
+/* Iconos de date/time pickers visibles en tema oscuro */
+.input-base::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
 }

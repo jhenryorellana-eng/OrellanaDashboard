@@ -51,6 +51,17 @@ export function fullDateLabel(d: Date): string {
   return format(d, "EEEE d 'de' MMMM", { locale: es });
 }
 
+/** Hash SHA-256 en hex (para guardar el PIN sin texto plano). */
+export async function sha256(text: string): Promise<string> {
+  const buf = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(text),
+  );
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 /** Deriva un título corto a partir del texto de una nota. */
 export function deriveTitle(text: string, max = 48): string {
   const clean = (text || "").trim().replace(/\s+/g, " ");

@@ -12,6 +12,7 @@ import {
   Check,
   CalendarPlus,
   Link2,
+  Settings,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import type { VoiceNote } from "@/lib/types";
@@ -28,6 +29,7 @@ import AudioPlayer from "../AudioPlayer";
 
 export default function NotesView() {
   const notes = useStore((s) => s.notes);
+  const setTab = useStore((s) => s.setTab);
 
   const sorted = useMemo(
     () =>
@@ -40,11 +42,20 @@ export default function NotesView() {
 
   return (
     <div className="space-y-5 pt-2">
-      <header>
-        <h1 className="font-display text-3xl font-semibold">Notas de voz</h1>
-        <p className="text-sm text-slate-400">
-          Captura ideas al instante con tu voz.
-        </p>
+      <header className="flex items-start justify-between gap-2">
+        <div>
+          <h1 className="font-display text-3xl font-semibold">Notas de voz</h1>
+          <p className="text-sm text-slate-400">
+            Captura ideas al instante con tu voz.
+          </p>
+        </div>
+        <button
+          onClick={() => setTab("settings")}
+          aria-label="Ajustes"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 active:scale-95"
+        >
+          <Settings size={18} />
+        </button>
       </header>
 
       <VoiceRecorder />

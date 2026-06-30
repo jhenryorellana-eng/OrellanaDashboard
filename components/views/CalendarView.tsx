@@ -16,7 +16,7 @@ import {
   format,
 } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Settings } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { eventsForDate, colorsForDate } from "@/lib/selectors";
 import { CATEGORY_META } from "@/lib/constants";
@@ -33,6 +33,7 @@ export default function CalendarView() {
   const selectedDate = useStore((s) => s.selectedDate);
   const setSelectedDate = useStore((s) => s.setSelectedDate);
   const openEditor = useStore((s) => s.openEditor);
+  const setTab = useStore((s) => s.setTab);
 
   const [cursor, setCursor] = useState(() => parseISO(selectedDate));
 
@@ -46,12 +47,15 @@ export default function CalendarView() {
 
   return (
     <div className="space-y-5 pt-2">
-      <header className="flex items-center justify-between">
-        <h1 className="font-display text-3xl font-semibold capitalize">
+      <header className="flex items-center justify-between gap-2">
+        <h1 className="min-w-0 truncate font-display text-3xl font-semibold capitalize">
           {format(cursor, "MMMM", { locale: es })}{" "}
           <span className="text-slate-500">{format(cursor, "yyyy")}</span>
         </h1>
-        <div className="flex gap-2">
+        <div className="flex shrink-0 gap-2">
+          <NavBtn onClick={() => setTab("settings")}>
+            <Settings size={18} />
+          </NavBtn>
           <NavBtn onClick={() => setCursor((c) => subMonths(c, 1))}>
             <ChevronLeft size={20} />
           </NavBtn>

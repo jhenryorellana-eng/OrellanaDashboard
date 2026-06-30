@@ -1,6 +1,7 @@
-import type { EventItem } from "./types";
+import type { EventItem, StaffMember } from "./types";
 import { CATEGORY_META } from "./constants";
 import { toDateTime, formatHour } from "./utils";
+import { nextPayday, formatMoney, PAYMENT_METHOD_LABELS } from "./staff";
 
 /**
  * Recordatorios locales: mientras la PWA está abierta (o instalada en segundo
@@ -9,6 +10,7 @@ import { toDateTime, formatHour } from "./utils";
  */
 
 const timers = new Map<string, ReturnType<typeof setTimeout>>();
+const staffTimers = new Map<string, ReturnType<typeof setTimeout>>();
 const WINDOW_MS = 24 * 60 * 60 * 1000; // solo programamos las próximas 24h
 
 export function notificationsSupported(): boolean {
@@ -30,29 +32,45 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
   }
 }
 
-async function showNotification(event: EventItem) {
+async function notify(title: string, options: NotificationOptions) {
   if (notificationPermission() !== "granted") return;
+  try {
+    const reg = await navigator.serviceWorker?.ready;
+    if (reg) {
+      await reg.showNotification(title, options);
+      return;
+    }
+  } catch {
+    /* sin service worker: usamos la API directa abajo */
+  }
+  new Notification(title, options);
+}
+
+async function showNotification(event: EventItem) {
   const meta = CATEGORY_META[event.category];
   const body = `${formatHour(event.time)} · ${meta.label}${
     event.location ? ` · ${event.location}` : ""
   }`;
-  const options: NotificationOptions = {
+  await notify(`⏰ ${event.title}`, {
     body,
     icon: "/icons/icon-192.png",
     badge: "/icons/icon-192.png",
     tag: event.id,
     data: { eventId: event.id },
-  };
-  try {
-    const reg = await navigator.serviceWorker?.ready;
-    if (reg) {
-      await reg.showNotification(`⏰ ${event.title}`, options);
-      return;
-    }
-  } catch {
-    /* fallback abajo */
-  }
-  new Notification(`⏰ ${event.title}`, options);
+  });
+}
+
+async function showStaffNotification(m: StaffMember) {
+  const body = `${formatMoney(m.salary, m.currency)} · ${
+    PAYMENT_METHOD_LABELS[m.paymentMethod]
+  }`;
+  await notify(`💸 Pago de ${m.name}`, {
+    body,
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    tag: `staff-${m.id}`,
+    data: { staffId: m.id },
+  });
 }
 
 function clearTimers() {
@@ -78,6 +96,31 @@ export function scheduleReminders(events: EventItem[]) {
       setTimeout(() => {
         void showNotification(event);
         timers.delete(event.id);
+      }, delay),
+    );
+  }
+}
+
+/** Reprograma los recordatorios de pago del equipo. */
+export function scheduleStaffReminders(members: StaffMember[]) {
+  if (!notificationsSupported() || notificationPermission() !== "granted") {
+    return;
+  }
+  staffTimers.forEach((t) => clearTimeout(t));
+  staffTimers.clear();
+  const now = Date.now();
+  for (const m of members) {
+    if (m.status === "inactivo" || m.reminderDaysBefore == null) continue;
+    const payday = nextPayday(m);
+    if (!payday) continue;
+    const fireAt = payday.getTime() - m.reminderDaysBefore * 86_400_000;
+    const delay = fireAt - now;
+    if (delay <= 0 || delay > WINDOW_MS) continue;
+    staffTimers.set(
+      m.id,
+      setTimeout(() => {
+        void showStaffNotification(m);
+        staffTimers.delete(m.id);
       }, delay),
     );
   }

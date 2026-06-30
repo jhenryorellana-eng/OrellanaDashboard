@@ -7,15 +7,18 @@ import { initInstallCapture } from "@/lib/pwa";
 import TodayView from "./views/TodayView";
 import CalendarView from "./views/CalendarView";
 import NotesView from "./views/NotesView";
+import StaffView from "./views/StaffView";
 import SettingsView from "./views/SettingsView";
 import BottomNav from "./BottomNav";
 import EventEditor from "./EventEditor";
+import StaffEditor from "./StaffEditor";
 import InstallPrompt from "./InstallPrompt";
 
 const VIEWS = {
   today: TodayView,
   calendar: CalendarView,
   notes: NotesView,
+  staff: StaffView,
   settings: SettingsView,
 } as const;
 
@@ -59,6 +62,7 @@ export default function AppShell() {
 
       <BottomNav />
       <EventEditor />
+      <StaffEditor />
     </div>
   );
 }

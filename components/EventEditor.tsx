@@ -298,26 +298,6 @@ export default function EventEditor() {
           </button>
         </div>
       </div>
-
-      <style jsx global>{`
-        .input-base {
-          width: 100%;
-          border-radius: 0.85rem;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          background: rgba(255, 255, 255, 0.04);
-          padding: 0.7rem 0.85rem;
-          font-size: 0.95rem;
-          color: rgb(241, 245, 249);
-          outline: none;
-        }
-        .input-base:focus {
-          border-color: rgba(245, 182, 66, 0.5);
-          background: rgba(255, 255, 255, 0.06);
-        }
-        .input-base::-webkit-calendar-picker-indicator {
-          filter: invert(0.8);
-        }
-      `}</style>
     </Sheet>
   );
 }
