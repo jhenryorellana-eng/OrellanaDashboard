@@ -1,0 +1,78 @@
+"use client";
+
+import { useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useStore } from "@/lib/store";
+import { initInstallCapture } from "@/lib/pwa";
+import TodayView from "./views/TodayView";
+import CalendarView from "./views/CalendarView";
+import NotesView from "./views/NotesView";
+import SettingsView from "./views/SettingsView";
+import BottomNav from "./BottomNav";
+import EventEditor from "./EventEditor";
+import InstallPrompt from "./InstallPrompt";
+
+const VIEWS = {
+  today: TodayView,
+  calendar: CalendarView,
+  notes: NotesView,
+  settings: SettingsView,
+} as const;
+
+export default function AppShell() {
+  const hydrated = useStore((s) => s.hydrated);
+  const hydrate = useStore((s) => s.hydrate);
+  const activeTab = useStore((s) => s.activeTab);
+
+  useEffect(() => {
+    hydrate();
+    initInstallCapture();
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {
+        /* el SW es opcional: la app funciona igual sin él */
+      });
+    }
+  }, [hydrate]);
+
+  const ActiveView = VIEWS[activeTab];
+
+  return (
+    <div className="relative z-10 mx-auto min-h-[100dvh] w-full max-w-md px-4 pb-28 pt-safe">
+      {!hydrated ? (
+        <BootSplash />
+      ) : (
+        <>
+          <InstallPrompt />
+          <AnimatePresence mode="wait">
+            <motion.main
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <ActiveView />
+            </motion.main>
+          </AnimatePresence>
+        </>
+      )}
+
+      <BottomNav />
+      <EventEditor />
+    </div>
+  );
+}
+
+function BootSplash() {
+  return (
+    <div className="flex min-h-[80dvh] flex-col items-center justify-center gap-4">
+      <div className="relative grid h-16 w-16 place-items-center">
+        <span className="absolute inset-0 animate-pulse-ring rounded-2xl bg-gold/30" />
+        <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-gold-300 to-gold-600 font-display text-2xl font-bold text-ink-950">
+          C
+        </div>
+      </div>
+      <p className="font-display text-lg text-slate-400">Command Center</p>
+    </div>
+  );
+}
