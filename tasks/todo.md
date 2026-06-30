@@ -1,5 +1,15 @@
 # TODO — HiHenry
 
+## ✅ Hecho (v0.5 — 2026-06-30)
+- [x] Nueva sección **Pagos**: tarjetas, servicios, suscripciones, préstamos, renta, impuestos
+- [x] Ficha: monto+moneda, frecuencia, próximo vencimiento, banco/empresa, referencia, domiciliado, recordatorio, notas
+- [x] Estado de vencimiento (vencido/hoy/por vencer) + "Marcar pagado" (avanza la fecha) + "Deshacer"
+- [x] Resumen: gasto mensual estimado + alerta de vencidos/por vencer
+- [x] Recordatorios de vencimiento en las notificaciones locales (IndexedDB v3)
+- [x] Alerta de "pagos por vencer" en el dashboard Hoy
+- [x] Nav rediseñado: 5 pestañas (Hoy/Agenda/Notas/Pagos/Equipo) + FAB flotante contextual
+- [x] Verificado en navegador: alta, marcar pagado, deshacer, alerta en Hoy
+
 ## ✅ Hecho (v0.4 — 2026-06-30)
 - [x] Renombrado de marca a **HiHenry** (manifest, metadata, splash, avatar, install, ajustes)
 - [x] Logo propio → iconos PWA (192/512/maskable/apple), favicon e imagen Open Graph (compartir)

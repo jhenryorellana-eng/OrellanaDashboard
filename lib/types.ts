@@ -8,7 +8,63 @@ export type EventCategory =
 
 export type Priority = "low" | "medium" | "high";
 
-export type TabKey = "today" | "calendar" | "notes" | "staff" | "settings";
+export type TabKey =
+  | "today"
+  | "calendar"
+  | "notes"
+  | "payments"
+  | "staff"
+  | "settings";
+
+export type BillCategory =
+  | "tarjeta"
+  | "servicio"
+  | "suscripcion"
+  | "prestamo"
+  | "renta"
+  | "impuesto"
+  | "otro";
+
+export type BillFrequency =
+  | "semanal"
+  | "mensual"
+  | "bimestral"
+  | "trimestral"
+  | "semestral"
+  | "anual"
+  | "unico";
+
+/** Un pago registrado de una cuenta/servicio (historial). */
+export interface BillPayment {
+  id: string;
+  /** Fecha en que se marcó pagado yyyy-MM-dd */
+  date: string;
+  amount: number;
+  /** Vencimiento que cubrió este pago yyyy-MM-dd */
+  dueDate: string;
+}
+
+export interface Bill {
+  id: string;
+  name: string;
+  category: BillCategory;
+  amount: number;
+  currency: string;
+  frequency: BillFrequency;
+  /** Próximo vencimiento yyyy-MM-dd */
+  nextDueDate: string;
+  /** Banco o empresa emisora */
+  issuer?: string;
+  /** Referencia: últimos 4 dígitos, nº de contrato/servicio… */
+  reference?: string;
+  /** Pago domiciliado/automático */
+  autopay: boolean;
+  /** Recordatorio: días antes del vencimiento. null = sin recordatorio */
+  reminderDaysBefore: number | null;
+  notes?: string;
+  payments: BillPayment[];
+  createdAt: number;
+}
 
 export type StaffStatus = "activo" | "vacaciones" | "inactivo";
 export type PayFrequency = "mensual" | "quincenal" | "semanal";

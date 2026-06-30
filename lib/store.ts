@@ -1,8 +1,19 @@
 import { create } from "zustand";
-import type { EventItem, VoiceNote, StaffMember, TabKey } from "./types";
+import type {
+  EventItem,
+  VoiceNote,
+  StaffMember,
+  Bill,
+  TabKey,
+} from "./types";
 import * as db from "./db";
-import { scheduleReminders, scheduleStaffReminders } from "./notifications";
+import {
+  scheduleReminders,
+  scheduleStaffReminders,
+  scheduleBillReminders,
+} from "./notifications";
 import { currentPeriodKey } from "./staff";
+import { advanceDue } from "./bills";
 import { uid, dateKey, sha256 } from "./utils";
 
 const PIN_META_KEY = "staffPinHash";
@@ -11,17 +22,26 @@ type StaffInput = Omit<StaffMember, "id" | "createdAt" | "payments"> & {
   id?: string;
 };
 
+type BillInput = Omit<Bill, "id" | "createdAt" | "payments"> & {
+  id?: string;
+};
+
 interface CommandState {
   hydrated: boolean;
   events: EventItem[];
   notes: VoiceNote[];
   staff: StaffMember[];
+  bills: Bill[];
 
   // Equipo (UI + seguridad)
   staffEditorOpen: boolean;
   editingStaff: StaffMember | null;
   staffPinSet: boolean;
   staffUnlocked: boolean;
+
+  // Pagos (UI)
+  billEditorOpen: boolean;
+  editingBill: Bill | null;
 
   // UI
   activeTab: TabKey;
@@ -56,6 +76,14 @@ interface CommandState {
   removeStaffPin: () => Promise<void>;
   unlockStaff: (pin: string) => Promise<boolean>;
 
+  // pagos
+  saveBill: (input: BillInput) => Promise<void>;
+  removeBill: (id: string) => Promise<void>;
+  markBillPaid: (id: string) => Promise<void>;
+  undoBillPayment: (id: string) => Promise<void>;
+  openBillEditor: (bill?: Bill | null) => void;
+  closeBillEditor: () => void;
+
   // UI actions
   setTab: (tab: TabKey) => void;
   setSelectedDate: (date: string) => void;
@@ -73,10 +101,13 @@ export const useStore = create<CommandState>((set, get) => ({
   events: [],
   notes: [],
   staff: [],
+  bills: [],
   staffEditorOpen: false,
   editingStaff: null,
   staffPinSet: false,
   staffUnlocked: false,
+  billEditorOpen: false,
+  editingBill: null,
   activeTab: "today",
   selectedDate: dateKey(new Date()),
   editorOpen: false,
@@ -85,15 +116,24 @@ export const useStore = create<CommandState>((set, get) => ({
 
   hydrate: async () => {
     if (get().hydrated) return;
-    const [events, notes, staff, pinHash] = await Promise.all([
+    const [events, notes, staff, bills, pinHash] = await Promise.all([
       db.getAllEvents(),
       db.getAllNotes(),
       db.getAllStaff(),
+      db.getAllBills(),
       db.getMeta<string>(PIN_META_KEY),
     ]);
-    set({ events, notes, staff, staffPinSet: !!pinHash, hydrated: true });
+    set({
+      events,
+      notes,
+      staff,
+      bills,
+      staffPinSet: !!pinHash,
+      hydrated: true,
+    });
     reschedule(events);
     scheduleStaffReminders(staff);
+    scheduleBillReminders(bills);
   },
 
   saveEvent: async (input) => {
@@ -215,6 +255,74 @@ export const useStore = create<CommandState>((set, get) => ({
     }
     return false;
   },
+
+  saveBill: async (input) => {
+    const existing = input.id
+      ? get().bills.find((b) => b.id === input.id)
+      : null;
+    const bill: Bill = {
+      ...input,
+      id: input.id ?? uid(),
+      payments: existing?.payments ?? [],
+      createdAt: existing?.createdAt ?? Date.now(),
+    };
+    await db.putBill(bill);
+    const bills = existing
+      ? get().bills.map((b) => (b.id === bill.id ? bill : b))
+      : [...get().bills, bill];
+    set({ bills, billEditorOpen: false, editingBill: null });
+    scheduleBillReminders(bills);
+  },
+
+  removeBill: async (id) => {
+    await db.deleteBill(id);
+    const bills = get().bills.filter((b) => b.id !== id);
+    set({ bills, billEditorOpen: false, editingBill: null });
+    scheduleBillReminders(bills);
+  },
+
+  markBillPaid: async (id) => {
+    const bill = get().bills.find((b) => b.id === id);
+    if (!bill) return;
+    const payment = {
+      id: uid(),
+      date: dateKey(new Date()),
+      amount: bill.amount,
+      dueDate: bill.nextDueDate,
+    };
+    const nextDueDate =
+      bill.frequency === "unico"
+        ? bill.nextDueDate
+        : advanceDue(bill.nextDueDate, bill.frequency);
+    const updated = {
+      ...bill,
+      payments: [...bill.payments, payment],
+      nextDueDate,
+    };
+    await db.putBill(updated);
+    const bills = get().bills.map((b) => (b.id === id ? updated : b));
+    set({ bills });
+    scheduleBillReminders(bills);
+  },
+
+  undoBillPayment: async (id) => {
+    const bill = get().bills.find((b) => b.id === id);
+    if (!bill || bill.payments.length === 0) return;
+    const last = bill.payments[bill.payments.length - 1];
+    const updated = {
+      ...bill,
+      payments: bill.payments.slice(0, -1),
+      nextDueDate: bill.frequency === "unico" ? bill.nextDueDate : last.dueDate,
+    };
+    await db.putBill(updated);
+    const bills = get().bills.map((b) => (b.id === id ? updated : b));
+    set({ bills });
+    scheduleBillReminders(bills);
+  },
+
+  openBillEditor: (bill = null) =>
+    set({ billEditorOpen: true, editingBill: bill }),
+  closeBillEditor: () => set({ billEditorOpen: false, editingBill: null }),
 
   setTab: (tab) => set({ activeTab: tab }),
   setSelectedDate: (date) => set({ selectedDate: date }),

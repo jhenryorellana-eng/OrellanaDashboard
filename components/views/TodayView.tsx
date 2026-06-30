@@ -3,13 +3,14 @@
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarDays, Mic, Sparkles, ArrowRight } from "lucide-react";
+import { CalendarDays, Mic, Sparkles, ArrowRight, CreditCard } from "lucide-react";
 import { useStore } from "@/lib/store";
 import {
   eventsForDate,
   todayProgress,
   nextEvent,
 } from "@/lib/selectors";
+import { upcomingBills, dueStatus } from "@/lib/bills";
 import { dateKey, toDateTime, formatHour } from "@/lib/utils";
 import Clock from "../Clock";
 import ProgressRing from "../ProgressRing";
@@ -19,8 +20,11 @@ import CategoryIcon from "../CategoryIcon";
 export default function TodayView() {
   const events = useStore((s) => s.events);
   const notes = useStore((s) => s.notes);
+  const bills = useStore((s) => s.bills);
   const openEditor = useStore((s) => s.openEditor);
   const setTab = useStore((s) => s.setTab);
+
+  const duePayments = upcomingBills(bills, 7);
 
   const today = dateKey(new Date());
   const todays = eventsForDate(events, today);
@@ -95,6 +99,39 @@ export default function TodayView() {
           </div>
         </div>
       </motion.section>
+
+      {/* Alerta de pagos por vencer */}
+      {duePayments.length > 0 && (
+        <button
+          onClick={() => setTab("payments")}
+          className="glass flex w-full items-center gap-3 p-4 text-left transition active:scale-[0.99]"
+        >
+          {(() => {
+            const nearest = duePayments[0];
+            const st = dueStatus(nearest);
+            return (
+              <>
+                <div
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl"
+                  style={{ background: `${st.color}1f` }}
+                >
+                  <CreditCard size={20} style={{ color: st.color }} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-slate-100">
+                    {duePayments.length}{" "}
+                    {duePayments.length === 1 ? "pago por vencer" : "pagos por vencer"}
+                  </p>
+                  <p className="truncate text-xs" style={{ color: st.color }}>
+                    {nearest.name} · {st.label}
+                  </p>
+                </div>
+                <ArrowRight className="text-slate-500" size={20} />
+              </>
+            );
+          })()}
+        </button>
+      )}
 
       {/* Próximo evento destacado */}
       {next && (

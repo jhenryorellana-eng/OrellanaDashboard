@@ -1,4 +1,4 @@
-import type { EventItem, StaffMember } from "./types";
+import type { EventItem, StaffMember, Bill } from "./types";
 import { CATEGORY_META } from "./constants";
 import { toDateTime, formatHour } from "./utils";
 import { nextPayday, formatMoney, PAYMENT_METHOD_LABELS } from "./staff";
@@ -11,6 +11,7 @@ import { nextPayday, formatMoney, PAYMENT_METHOD_LABELS } from "./staff";
 
 const timers = new Map<string, ReturnType<typeof setTimeout>>();
 const staffTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const billTimers = new Map<string, ReturnType<typeof setTimeout>>();
 const WINDOW_MS = 24 * 60 * 60 * 1000; // solo programamos las próximas 24h
 
 export function notificationsSupported(): boolean {
@@ -73,6 +74,16 @@ async function showStaffNotification(m: StaffMember) {
   });
 }
 
+async function showBillNotification(b: Bill) {
+  await notify(`💳 ${b.name} por vencer`, {
+    body: formatMoney(b.amount, b.currency),
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    tag: `bill-${b.id}`,
+    data: { billId: b.id },
+  });
+}
+
 function clearTimers() {
   timers.forEach((t) => clearTimeout(t));
   timers.clear();
@@ -121,6 +132,31 @@ export function scheduleStaffReminders(members: StaffMember[]) {
       setTimeout(() => {
         void showStaffNotification(m);
         staffTimers.delete(m.id);
+      }, delay),
+    );
+  }
+}
+
+/** Reprograma los recordatorios de vencimiento de pagos. */
+export function scheduleBillReminders(bills: Bill[]) {
+  if (!notificationsSupported() || notificationPermission() !== "granted") {
+    return;
+  }
+  billTimers.forEach((t) => clearTimeout(t));
+  billTimers.clear();
+  const now = Date.now();
+  for (const b of bills) {
+    if (b.reminderDaysBefore == null) continue;
+    if (b.frequency === "unico" && b.payments.length > 0) continue;
+    const due = new Date(`${b.nextDueDate}T09:00:00`).getTime();
+    const fireAt = due - b.reminderDaysBefore * 86_400_000;
+    const delay = fireAt - now;
+    if (delay <= 0 || delay > WINDOW_MS) continue;
+    billTimers.set(
+      b.id,
+      setTimeout(() => {
+        void showBillNotification(b);
+        billTimers.delete(b.id);
       }, delay),
     );
   }
