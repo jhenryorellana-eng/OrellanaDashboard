@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Check, MapPin, AlignLeft } from "lucide-react";
 import { useStore } from "@/lib/store";
-import type { EventCategory, Priority } from "@/lib/types";
+import type { EventCategory, Priority, EventItem } from "@/lib/types";
 import {
   CATEGORY_ORDER,
   CATEGORY_META,
@@ -45,9 +45,27 @@ function defaults(date: string): FormState {
   };
 }
 
+function mergeDraft(base: FormState, draft: Partial<EventItem> | null): FormState {
+  if (!draft) return base;
+  return {
+    ...base,
+    title: draft.title ?? base.title,
+    date: draft.date ?? base.date,
+    time: draft.time ?? base.time,
+    endTime: draft.endTime ?? base.endTime,
+    location: draft.location ?? base.location,
+    notes: draft.notes ?? base.notes,
+    category: draft.category ?? base.category,
+    categoryDetail: draft.categoryDetail ?? base.categoryDetail,
+    priority: draft.priority ?? base.priority,
+    reminderMinutes: draft.reminderMinutes ?? base.reminderMinutes,
+  };
+}
+
 export default function EventEditor() {
   const open = useStore((s) => s.editorOpen);
   const editing = useStore((s) => s.editingEvent);
+  const draft = useStore((s) => s.draftEvent);
   const selectedDate = useStore((s) => s.selectedDate);
   const close = useStore((s) => s.closeEditor);
   const saveEvent = useStore((s) => s.saveEvent);
@@ -71,9 +89,9 @@ export default function EventEditor() {
             priority: editing.priority,
             reminderMinutes: editing.reminderMinutes,
           }
-        : defaults(selectedDate),
+        : mergeDraft(defaults(selectedDate), draft),
     );
-  }, [open, editing, selectedDate]);
+  }, [open, editing, draft, selectedDate]);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }));

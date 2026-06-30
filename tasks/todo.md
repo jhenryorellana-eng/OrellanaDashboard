@@ -1,4 +1,4 @@
-# TODO — Command Center
+# TODO — Orellana Dashboard
 
 ## ✅ Hecho (v0.1 — 2026-06-29)
 - [x] Scaffolding Next.js 15 + TS + Tailwind v3 (manual, por nombre de carpeta con espacios)
@@ -10,13 +10,24 @@
 - [x] Recordatorios locales (Notification API + service worker)
 - [x] PWA: manifest, service worker, iconos generados sin deps nativas
 - [x] Ajustes: permisos de notificación, instalar, exportar/borrar datos
-- [x] Verificado en navegador (390×844): build OK, sin errores de consola
+
+## ✅ Hecho (v0.2 — 2026-06-30)
+- [x] Renombrado de marca a "Orellana Dashboard"
+- [x] Campo contextual por categoría en el editor (con quién / destino / monto…)
+- [x] Notas → acción: detector de fecha/hora en español (`parseDateTime`) → "Crear evento" prellenado
+- [x] Vínculo nota ↔ fecha (linkedDate) al crear evento desde una nota
+- [x] Compartir nota (Web Share API, con audio) + copiar texto
+- [x] Grabador: pausar/reanudar + selector de idioma (ES/EN)
+- [x] Reproductor pro: waveform decodificado, scrubber y velocidad (1×/1.5×/2×)
+- [x] Verificado en navegador: build OK, detección de fecha y prefill correctos, sin errores
 
 ## 🔭 Backlog / mejoras futuras
+- [ ] Notas: buscador, título editable y categorías/etiquetas
+- [ ] Notas: extraer pendientes (checklist) del texto
+- [ ] IA opcional (fase 2): resumen + action items + auto-título (requiere backend/API key)
 - [ ] Búsqueda y filtros de eventos por categoría
 - [ ] Vista semanal / agenda tipo timeline
 - [ ] Recurrencia de eventos (diario/semanal)
-- [ ] Vincular notas de voz a un evento concreto
 - [ ] Sincronización en la nube opcional (Supabase) + push reales (VAPID)
 - [ ] Tema claro / personalización de acento
 - [ ] Importar respaldo JSON

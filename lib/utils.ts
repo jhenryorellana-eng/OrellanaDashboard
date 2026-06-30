@@ -51,6 +51,14 @@ export function fullDateLabel(d: Date): string {
   return format(d, "EEEE d 'de' MMMM", { locale: es });
 }
 
+/** Deriva un título corto a partir del texto de una nota. */
+export function deriveTitle(text: string, max = 48): string {
+  const clean = (text || "").trim().replace(/\s+/g, " ");
+  if (!clean) return "Nota de voz";
+  if (clean.length <= max) return clean;
+  return `${clean.slice(0, max).replace(/\s+\S*$/, "")}…`;
+}
+
 export function timeAgo(ts: number): string {
   const mins = differenceInMinutes(new Date(), new Date(ts));
   if (mins < 1) return "ahora";

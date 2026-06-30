@@ -14,6 +14,8 @@ interface CommandState {
   selectedDate: string;
   editorOpen: boolean;
   editingEvent: EventItem | null;
+  /** Borrador prellenado para un evento nuevo (p. ej. creado desde una nota) */
+  draftEvent: Partial<EventItem> | null;
 
   // lifecycle
   hydrate: () => Promise<void>;
@@ -26,11 +28,13 @@ interface CommandState {
   addNote: (note: Omit<VoiceNote, "id" | "createdAt">) => Promise<void>;
   removeNote: (id: string) => Promise<void>;
   togglePinNote: (id: string) => Promise<void>;
+  linkNoteToDate: (id: string, date: string) => Promise<void>;
 
   // UI actions
   setTab: (tab: TabKey) => void;
   setSelectedDate: (date: string) => void;
   openEditor: (event?: EventItem | null, presetDate?: string) => void;
+  openEditorDraft: (draft: Partial<EventItem>) => void;
   closeEditor: () => void;
 }
 
@@ -46,6 +50,7 @@ export const useStore = create<CommandState>((set, get) => ({
   selectedDate: dateKey(new Date()),
   editorOpen: false,
   editingEvent: null,
+  draftEvent: null,
 
   hydrate: async () => {
     if (get().hydrated) return;
@@ -100,13 +105,30 @@ export const useStore = create<CommandState>((set, get) => ({
     set({ notes: get().notes.map((n) => (n.id === id ? updated : n)) });
   },
 
+  linkNoteToDate: async (id, date) => {
+    const note = get().notes.find((n) => n.id === id);
+    if (!note) return;
+    const updated = { ...note, linkedDate: date };
+    await db.putNote(updated);
+    set({ notes: get().notes.map((n) => (n.id === id ? updated : n)) });
+  },
+
   setTab: (tab) => set({ activeTab: tab }),
   setSelectedDate: (date) => set({ selectedDate: date }),
   openEditor: (event = null, presetDate) =>
     set({
       editorOpen: true,
       editingEvent: event,
+      draftEvent: null,
       selectedDate: presetDate ?? get().selectedDate,
     }),
-  closeEditor: () => set({ editorOpen: false, editingEvent: null }),
+  openEditorDraft: (draft) =>
+    set({
+      editorOpen: true,
+      editingEvent: null,
+      draftEvent: draft,
+      selectedDate: draft.date ?? get().selectedDate,
+    }),
+  closeEditor: () =>
+    set({ editorOpen: false, editingEvent: null, draftEvent: null }),
 }));
