@@ -23,6 +23,7 @@ import {
   notificationsSupported,
 } from "@/lib/notifications";
 import { canInstall, promptInstall, isStandalone, onInstallChange } from "@/lib/pwa";
+import { subscribeToPush } from "@/lib/push";
 import { exportData, clearAll } from "@/lib/db";
 import { useStore } from "@/lib/store";
 import { APP_NAME } from "@/lib/constants";
@@ -67,7 +68,10 @@ export default function SettingsView() {
   async function enableNotifications() {
     const p = await requestNotificationPermission();
     setPerm(p);
-    if (p === "granted") await sendTestNotification();
+    if (p === "granted") {
+      await subscribeToPush();
+      await sendTestNotification();
+    }
   }
 
   async function handleExport() {

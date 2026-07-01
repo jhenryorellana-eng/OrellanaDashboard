@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { initInstallCapture } from "@/lib/pwa";
 import { supabase } from "@/lib/supabase";
+import { subscribeToPush } from "@/lib/push";
 import AuthScreen from "./AuthScreen";
 import TodayView from "./views/TodayView";
 import CalendarView from "./views/CalendarView";
@@ -64,6 +65,17 @@ export default function AppShell() {
   useEffect(() => {
     if (signedIn && !hydrated) hydrate();
   }, [signedIn, hydrated, hydrate]);
+
+  // Si ya se concedió permiso, re-suscribe este dispositivo a Web Push al entrar.
+  useEffect(() => {
+    if (
+      signedIn &&
+      typeof Notification !== "undefined" &&
+      Notification.permission === "granted"
+    ) {
+      subscribeToPush();
+    }
+  }, [signedIn]);
 
   if (!authReady) return <BootSplash />;
   if (!signedIn) return <AuthScreen />;

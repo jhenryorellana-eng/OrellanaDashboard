@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { eventRemindAt, billRemindAt, staffRemindAt } from "./reminders";
 import type {
   EventItem,
   VoiceNote,
@@ -49,6 +50,7 @@ function eventToRow(e: EventItem): Row {
     modality: e.modality ?? null,
     priority: e.priority,
     reminder_minutes: e.reminderMinutes,
+    remind_at: eventRemindAt(e),
     created_at: e.createdAt,
   };
 }
@@ -187,6 +189,7 @@ function staffToRow(m: StaffMember): Row {
     reminder_days_before: m.reminderDaysBefore,
     notes: m.notes ?? null,
     payments: m.payments,
+    remind_at: staffRemindAt(m),
     created_at: m.createdAt,
   };
 }
@@ -239,6 +242,7 @@ function billToRow(b: Bill): Row {
     reminder_days_before: b.reminderDaysBefore,
     notes: b.notes ?? null,
     payments: b.payments,
+    remind_at: billRemindAt(b),
     created_at: b.createdAt,
   };
 }
